@@ -6,7 +6,7 @@ include_directories (
   ${CMAKE_CURRENT_SOURCE_DIR}/../Optimizers/
 ) 
 #SRS
-ADD_EXECUTABLE(SRS3D-Bone SRS3D-Bone.cxx )
+add_library(DeformableRegistrationAlgorithm SHARED SRS3D-Bone.cxx )
 ADD_EXECUTABLE(SRS3D-Bone-Multilabel SRS3D-Bone-Multilabel.cxx )
 ADD_EXECUTABLE(SRS2D-Bone SRS2D-Bone.cxx )
 
@@ -22,7 +22,7 @@ endif()
 
 #LINK_DIRECTORIES( ${LINK_DIRECTORIES} ${SRS-MRF_SOURCE_DIR}/SimultaneousRegistrationSegmentation/)
 
-TARGET_LINK_LIBRARIES(SRS3D-Bone Utils SRSPotentials   ${ITK_LIBRARIES}  )
+TARGET_LINK_LIBRARIES(DeformableRegistrationAlgorithm Utils SRSPotentials   ${ITK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(SRS3D-Bone-Multilabel Utils SRSPotentials
 ${ITK_LIBRARIES}  )
 TARGET_LINK_LIBRARIES(SRS2D-Bone Utils SRSPotentials   ${ITK_LIBRARIES}  )
@@ -44,7 +44,7 @@ TARGET_LINK_LIBRARIES(SRS3D-Bone  TRWS_LIBRARIES     )
 endif()
 #optional linking
 if( ${USE_GC} MATCHES "ON" )
-  TARGET_LINK_LIBRARIES(SRS3D-Bone  GC     )
+  TARGET_LINK_LIBRARIES(DeformableRegistrationAlgorithm  GC     )
   TARGET_LINK_LIBRARIES(SRS3D-Bone-Multilabel  GC     )
   if( ${USE_RF} MATCHES "ON" )
 
@@ -54,7 +54,7 @@ endif()
 endif()
 #optional linking
 if( ${USE_GCO} MATCHES "ON" )
-  TARGET_LINK_LIBRARIES(SRS3D-Bone  GCO     )
+  TARGET_LINK_LIBRARIES(DeformableRegistrationAlgorithm  GCO     )
   TARGET_LINK_LIBRARIES(SRS3D-Bone-Multilabel  GCO     )
   if( ${USE_RF} MATCHES "ON" )
 
@@ -69,7 +69,7 @@ endif()
 
 #optional linking
 if( ${USE_OPENGM} MATCHES "ON" )
-  TARGET_LINK_LIBRARIES(SRS3D-Bone    ${Boost_LIBRARIES}   )
+  TARGET_LINK_LIBRARIES(DeformableRegistrationAlgorithm    ${Boost_LIBRARIES}   )
   TARGET_LINK_LIBRARIES(SRS3D-Bone-Multilabel    ${Boost_LIBRARIES}   )
   if( ${USE_RF} MATCHES "ON" )
  TARGET_LINK_LIBRARIES(SRS2D-Classifier    ${Boost_LIBRARIES}   )
