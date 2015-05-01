@@ -79,20 +79,20 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
   bool            (*progressCallbackFunc)(int progress)
   )
 {
-	  //feraiseexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
+    //feraiseexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
     SRSConfig filterConfig;
-	  //filterConfig.parseParams(argc,argv);
+    //filterConfig.parseParams(argc,argv);
     if (filterConfig.logFileName!=""){
         mylog.setCachedLogging();
     }
     logSetStage("Init");
-	
-    typedef float PixelType;
-	  const unsigned int D=3;
-	  typedef Image<PixelType,D> ImageType;
+  
+    typedef unsigned short PixelType;
+    const unsigned int D=3;
+    typedef Image<PixelType,D> ImageType;
     typedef ImageType::Pointer ImagePointerType;
     typedef ImageType::ConstPointer ImageConstPointerType;
-	  typedef TransfUtils<ImageType>::DisplacementType DisplacementType;
+    typedef TransfUtils<ImageType>::DisplacementType DisplacementType;
     typedef SparseRegistrationLabelMapper<ImageType,DisplacementType> LabelMapperType;
     //typedef SemiSparseRegistrationLabelMapper<ImageType,DisplacementType> LabelMapperType;
     //typedef DenseRegistrationLabelMapper<ImageType,DisplacementType> LabelMapperType;
@@ -154,26 +154,117 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
 
     logUpdateStage("IO");
     logSetVerbosity(filterConfig.verbose);
-    LOG<<"Loading target image :"<<filterConfig.targetFilename<<std::endl;
-    ImagePointerType targetImage=ImageUtils<ImageType>::readImage(filterConfig.targetFilename);
-#if 0
-    if (filterConfig.normalizeImages){
-        targetImage=FilterUtils<ImageType>::normalizeImage(targetImage);
+    //LOG<<"Loading target image :"<<filterConfig.targetFilename<<std::endl;
+    //ImagePointerType targetImage=ImageUtils<ImageType>::readImage(filterConfig.targetFilename);
+    LOG << "create target image" << std::endl;
+    ImageType::Pointer targetImage = ImageType::New();
+
+    ImageType::SizeType  targetSize;
+    targetSize[0]  = targetSizeX;  // size along X
+    targetSize[1]  = targetSizeY;  // size along Y
+    targetSize[2]  = targetSizeZ;  // size along Z
+
+    ImageType::IndexType start;
+    start[0] =   0;  // first index on X
+    start[1] =   0;  // first index on Y
+    start[2] =   0;  // first index on Z
+
+    ImageType::RegionType targetRegion;
+    targetRegion.SetSize( targetSize );
+    targetRegion.SetIndex( start );
+
+    targetImage->SetRegions(targetRegion);
+    targetImage->Allocate();
+
+    ImageType::IndexType index;
+    for (int zt = 0; zt < targetSizeZ; zt++) {
+      for (int yt = 0; yt < targetSizeY; yt++) {
+        for (int xt = 0; xt < targetSizeX; xt++) {
+          index[0] = xt;
+          index[1] = yt;
+          index[2] = zt;
+          targetImage->SetPixel(index, targetPixels[xt + yt*targetSizeY + zt * (targetSizeX * targetSizeY)]);
+        }
+      }
     }
-#endif
+    double targetSpacing[3];
+    targetSpacing[0] = targetResX;
+    targetSpacing[1] = targetResY;
+    targetSpacing[2] = targetResZ;
+    targetImage ->SetSpacing(targetSpacing);
+
+    //write image as a test
+    typedef  itk::ImageFileWriter< ImageType > WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string seriesFormat("C:\\Users\\jstrasse\\Desktop");
+    seriesFormat = seriesFormat + "\\" + "target.nii.gz";
+    writer->SetFileName(seriesFormat);
+    writer->SetInput(targetImage);
+    writer->Update();
+
+
+    #if 0
+      if (filterConfig.normalizeImages){
+          targetImage=FilterUtils<ImageType>::normalizeImage(targetImage);
+      }
+    #endif
 
     if (!targetImage) {LOG<<"failed!"<<endl; exit(0);}
-    LOG<<"Loading atlas image :"<<filterConfig.atlasFilename<<std::endl;
-    ImagePointerType atlasImage;
-    if (filterConfig.atlasFilename!="") {
-      atlasImage=ImageUtils<ImageType>::readImage(filterConfig.atlasFilename);
-      #if 0
-        if (filterConfig.normalizeImages){
-          atlasImage=FilterUtils<ImageType>::normalizeImage(atlasImage);
+
+
+    LOG<<"create atlas image :"<<filterConfig.atlasFilename<<std::endl;
+    ImagePointerType atlasImage = ImageType::New();
+
+    ImageType::SizeType  size;
+    size[0]  = sourceSizeX;  // size along X
+    size[1]  = sourceSizeY;  // size along Y
+    size[2]  = sourceSizeZ;  // size along Z
+
+    ImageType::RegionType region;
+    region.SetSize( size );
+    region.SetIndex( start );
+
+    atlasImage->SetRegions( region );
+    atlasImage->Allocate();
+    for (int zt = 0; zt < sourceSizeZ; zt++) {
+      for (int yt = 0; yt < sourceSizeY; yt++) {
+        for (int xt = 0; xt < sourceSizeX; xt++) {
+          index[0] = xt;
+          index[1] = yt;
+          index[2] = zt;
+          atlasImage->SetPixel(index, sourcePixels[xt + yt*sourceSizeY + zt * (sourceSizeX * sourceSizeY)]);
         }
-      #endif
+      }
     }
+
+    double spacing[3];
+    spacing[0] = sourceResX;
+    spacing[1] = sourceResY;
+    spacing[2] = sourceResZ;
+    atlasImage ->SetSpacing(spacing);
+
+
+    //write image as a test
+    WriterType::Pointer atlasWriter = WriterType::New();
+    atlasWriter->SetFileName(seriesFormatAtlas);
+    atlasWriter->SetInput(atlasImage);
+    atlasWriter->Update();
+
+
+
+
+
+    //if (filterConfig.atlasFilename!="") {
+    //  atlasImage=ImageUtils<ImageType>::readImage(filterConfig.atlasFilename);
+    //  #if 0
+    //    if (filterConfig.normalizeImages){
+    //      atlasImage=FilterUtils<ImageType>::normalizeImage(atlasImage);
+    //    }
+    //  #endif
+    //}
     if (!atlasImage) {LOG<<"Warning: no atlas image loaded!"<<endl;
+
+
     LOG<<"Loading atlas segmentation image :"<<filterConfig.atlasSegmentationFilename<<std::endl;}
     ImagePointerType atlasSegmentation;
     if (filterConfig.atlasSegmentationFilename !="")atlasSegmentation=ImageUtils<ImageType>::readImage(filterConfig.atlasSegmentationFilename);
