@@ -33,47 +33,59 @@ using namespace std;
 using namespace SRS;
 using namespace itk;
 
-HANDLE hStdout;
-
-int main(int argc, char ** argv)
+//////////////////////////////////////////////////
+// The main registration algorithm entry function
+//////////////////////////////////////////////////
+EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
+  int             sourceSizeX,
+  int             sourceSizeY,   
+  int             sourceSizeZ,
+  double          sourceResX,
+  double          sourceResY,
+  double          sourceResZ,
+  unsigned short* sourcePixels,
+  int             sourceModality,
+  double          sourceSlope,
+  double          sourceIntercept,
+  int             targetSizeX,
+  int             targetSizeY,
+  int             targetSizeZ,
+  double          targetResX,
+  double          targetResY,
+  double          targetResZ,
+  unsigned short* targetPixels,
+  int             targetModality,
+  double          targetSlope,
+  double          targetIntercept,
+  double*         rigidAlignment,
+  double          voiOriginX,
+  double          voiOriginY,
+  double          voiOriginZ,
+  double          voiExtentX,
+  double          voiExtentY,
+  double          voiExtentZ,
+  int             numOptionalArguments,
+  wchar_t**       optionalArguments,
+  int*            fieldSizeX,
+  int*            fieldSizeY,
+  int*            fieldSizeZ,
+  double*         fieldResX,
+  double*         fieldResY,
+  double*         fieldResZ,
+  double*         fieldOriginX,
+  double*         fieldOriginY,
+  double*         fieldOriginZ,
+  float**         fieldVectors,
+  bool            (*progressCallbackFunc)(int progress)
+  )
 {
 	//feraiseexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
-	SRSConfig filterConfig;
-	filterConfig.parseParams(argc,argv);
-    if (filterConfig.logFileName!=""){
-        mylog.setCachedLogging();
-    }
-    logSetStage("Init");
-
-
-    _COORD coord; 
-    coord.X = 150; 
-    coord.Y = 100; 
-
-    _SMALL_RECT Rect; 
-    Rect.Top = 0; 
-    Rect.Left = 0; 
-    Rect.Bottom = 150 - 1; 
-    Rect.Right = 100 - 1; 
-
-    HANDLE Handle = GetStdHandle(STD_OUTPUT_HANDLE);      // Get Handle 
-    SetConsoleScreenBufferSize(Handle, coord);            // Set Buffer Size 
-    SetConsoleWindowInfo(Handle, TRUE, &Rect);            // Set Window Size 
-
-
-
-
-    //hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    //if (hStdout != NULL ) {
-    //  _SMALL_RECT rectangle; 
-    //  rectangle.Top = 0; 
-    //  rectangle.Left = 0; 
-    //  rectangle.Bottom = 500 - 1; 
-    //  rectangle.Right = 700 - 1; 
-    //  SetConsoleWindowInfo(hStdout, true, &rectangle);
-    //}
-    
-    //define types.
+  SRSConfig filterConfig;
+	//filterConfig.parseParams(argc,argv);
+  if (filterConfig.logFileName!=""){
+      mylog.setCachedLogging();
+  }
+  logSetStage("Init");
 	
     typedef float PixelType;
 	const unsigned int D=3;
@@ -361,5 +373,4 @@ int main(int argc, char ** argv)
         mylog.flushLog(filterConfig.logFileName);
     }
   
-    return 1;
 }
