@@ -246,6 +246,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
 
     //write image as a test
     WriterType::Pointer atlasWriter = WriterType::New();
+    std::string seriesFormatAtlas("C:\\Users\\jstrasse\\Desktop");
+    seriesFormatAtlas = seriesFormatAtlas + "\\" + "target2.nii.gz";
     atlasWriter->SetFileName(seriesFormatAtlas);
     atlasWriter->SetInput(atlasImage);
     atlasWriter->Update();
