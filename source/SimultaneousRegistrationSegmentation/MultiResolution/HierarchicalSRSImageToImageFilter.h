@@ -369,7 +369,7 @@ namespace SRS{
             DeformationFieldPointerType deformation;
             ImagePointerType segmentation=NULL;
             if (regist || coherence){
-                deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage(m_atlasSegmentationImage,previousFullDeformation,true);
+                //deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage(m_atlasSegmentationImage,previousFullDeformation,true);
                 if (coherence){
                     m_pairwiseCoherencePot->SetNumberOfSegmentationLabels(m_config->nSegmentations);
 		    m_pairwiseCoherencePot->SetAuxLabel(m_config->auxiliaryLabel);
@@ -384,6 +384,7 @@ namespace SRS{
             bool computeLowResolutionBsplineIfPossible=m_config->useLowResBSpline;
             LOGV(2)<<VAR(computeLowResolutionBsplineIfPossible)<<std::endl;
             typename GraphModelType::Pointer graph=GraphModelType::New();
+            LOGV(2)<<"m_config" << m_config <<std::endl;
             graph->setConfig(*m_config);
              //register images and potentials
             graph->setUnaryRegistrationFunction(m_unaryRegistrationPot);
@@ -588,7 +589,7 @@ namespace SRS{
                     if (coherence || (regist && m_config->verbose>6)){
                         
                         DeformationFieldPointerType scaledDeformation=TransfUtils<ImageType>::bSplineInterpolateDeformationField(previousFullDeformation,m_targetImage,false);
-                        deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage(m_atlasSegmentationImage,scaledDeformation,true);
+                        //deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage(m_atlasSegmentationImage,scaledDeformation,true);
                         if (coherence){
                             TIME(m_pairwiseCoherencePot->SetAtlasSegmentation((ConstImagePointerType)deformedAtlasSegmentation));
                         }
@@ -596,7 +597,7 @@ namespace SRS{
                             ostringstream deformedSegmentationFilename;
                             deformedSegmentationFilename<<m_config->outputDeformedSegmentationFilename<<"-l"<<l<<"-i"<<i<<suff;
                           
-                                if (regist) ImageUtils<ImageType>::writeImage(deformedSegmentationFilename.str().c_str(),deformedAtlasSegmentation);
+                                //if (regist) ImageUtils<ImageType>::writeImage(deformedSegmentationFilename.str().c_str(),deformedAtlasSegmentation);
                             
                         }
                     }
