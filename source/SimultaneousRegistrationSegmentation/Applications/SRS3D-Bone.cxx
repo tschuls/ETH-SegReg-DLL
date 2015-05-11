@@ -33,10 +33,17 @@ using namespace std;
 using namespace SRS;
 using namespace itk;
 
+
+bool (*realProgressCallbackFunc)(int progress);
+bool MyProgressCallback(int progress) {
+  return realProgressCallbackFunc(progress);
+}
+
+
 //////////////////////////////////////////////////
 // The main registration algorithm entry function
 //////////////////////////////////////////////////
-EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
+EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   int             sourceSizeX,
   int             sourceSizeY,   
   int             sourceSizeZ,
@@ -79,8 +86,31 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
   bool            (*progressCallbackFunc)(int progress)
   )
 {
+
+    // re-route the progress callback
+    realProgressCallbackFunc = progressCallbackFunc;
+
+    int progress = 0;
+
     //feraiseexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
     SRSConfig filterConfig;
+    filterConfig.outputDeformedFilename = "C:\\Users\\jstrasse\\Desktop\\deformedAtlas.nii";
+    filterConfig.defFilename = "C:\\Users\\jstrasse\\Desktop\\deformedField.mhd";
+    filterConfig.verbose = 5;
+    filterConfig.downScale = 0.25;
+    filterConfig.imageLevels = 4;
+    filterConfig.useLowResBSpline = true;
+    filterConfig.OPENGM = false;
+    filterConfig.iterationsPerLevel=4;
+    filterConfig.solver = "GCO";
+    filterConfig.linearDeformationInterpolation = true;
+    filterConfig.logFileName = "C:\\Users\\jstrasse\\Desktop\\SRS_LogFile.txt";
+
+    filterConfig.Initialize();
+    
+    progress = 1;
+    realProgressCallbackFunc(progress);
+    
     //filterConfig.parseParams(argc,argv);
     if (filterConfig.logFileName!=""){
         mylog.setCachedLogging();
@@ -194,13 +224,17 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
     targetImage ->SetSpacing(targetSpacing);
 
     //write image as a test
-    typedef  itk::ImageFileWriter< ImageType > WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    std::string seriesFormat("C:\\Users\\jstrasse\\Desktop");
-    seriesFormat = seriesFormat + "\\" + "target.nii.gz";
-    writer->SetFileName(seriesFormat);
-    writer->SetInput(targetImage);
-    writer->Update();
+    //typedef  itk::ImageFileWriter< ImageType > WriterType;
+    //WriterType::Pointer writer = WriterType::New();
+    //std::string seriesFormat("C:\\Users\\jstrasse\\Desktop");
+    //seriesFormat = seriesFormat + "\\" + "target.nii.gz";
+    //writer->SetFileName(seriesFormat);
+    //writer->SetInput(targetImage);
+    //writer->Update();
+
+
+    progress = 5;
+    realProgressCallbackFunc(progress);
 
 
     #if 0
@@ -245,12 +279,12 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
 
 
     //write image as a test
-    WriterType::Pointer atlasWriter = WriterType::New();
-    std::string seriesFormatAtlas("C:\\Users\\jstrasse\\Desktop");
-    seriesFormatAtlas = seriesFormatAtlas + "\\" + "target2.nii.gz";
-    atlasWriter->SetFileName(seriesFormatAtlas);
-    atlasWriter->SetInput(atlasImage);
-    atlasWriter->Update();
+    //WriterType::Pointer atlasWriter = WriterType::New();
+    //std::string seriesFormatAtlas("C:\\Users\\jstrasse\\Desktop");
+    //seriesFormatAtlas = seriesFormatAtlas + "\\" + "target2.nii.gz";
+    //atlasWriter->SetFileName(seriesFormatAtlas);
+    //atlasWriter->SetInput(atlasImage);
+    //atlasWriter->Update();
 
 
 
@@ -266,6 +300,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
     //}
     if (!atlasImage) {LOG<<"Warning: no atlas image loaded!"<<endl;
 
+
+    progress = 10;
+    realProgressCallbackFunc(progress);
 
     LOG<<"Loading atlas segmentation image :"<<filterConfig.atlasSegmentationFilename<<std::endl;}
     ImagePointerType atlasSegmentation;
@@ -328,7 +365,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
     }
     logResetStage;
 
-    ImagePointerType originalTargetImage=targetImage,originalAtlasImage=atlasImage,originalAtlasSegmentation=atlasSegmentation;
+    ImagePointerType originalTargetImage = ImageUtils<ImageType>::duplicate( targetImage);
+    ImagePointerType originalAtlasImage= ImageUtils<ImageType>::duplicate(atlasImage);
+    ImagePointerType originalAtlasSegmentation=atlasSegmentation;
     //preprocessing 3: downscaling
 
     if (filterConfig.downScale<1){
@@ -390,8 +429,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
       filter->setBulkTransform(transf);
     }
     logResetStage;//bulk transforms
-    originalTargetImage=NULL;
-    originalAtlasImage=NULL;
+    //originalTargetImage=NULL;
+    //originalAtlasImage=NULL;
     // compute SRS
     clock_t FULLstart = clock();
     filter->Init();
@@ -410,7 +449,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
     ImagePointerType targetSegmentationEstimate=filter->getTargetSegmentationEstimate();
     DeformationFieldPointerType finalDeformation=filter->getFinalDeformation();
     
-    delete filter;
+    //delete filter;
     if (filterConfig.atlasFilename!="") originalAtlasImage=ImageUtils<ImageType>::readImage(filterConfig.atlasFilename);
     if (filterConfig.targetFilename!="") originalTargetImage=ImageUtils<ImageType>::readImage(filterConfig.targetFilename);
 
@@ -433,31 +472,67 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
     }
     
     if (finalDeformation.IsNotNull() ) {
-      //if (filterConfig.defFilename!="")
-      //    ImageUtils<DeformationFieldType>::writeImage(filterConfig.defFilename,finalDeformation);
+      if (filterConfig.defFilename!="")
+          ImageUtils<DeformationFieldType>::writeImage(filterConfig.defFilename,finalDeformation);
       if (filterConfig.linearDeformationInterpolation){
         finalDeformation=TransfUtils<ImageType>::linearInterpolateDeformationField(finalDeformation,(ImageConstPointerType)originalTargetImage,false);
       }else{
         finalDeformation=TransfUtils<ImageType>::bSplineInterpolateDeformationField(finalDeformation,(ImageConstPointerType)originalTargetImage);
       }
-        
-      if (filterConfig.defFilename!="")
-        ImageUtils<DeformationFieldType>::writeImage(filterConfig.defFilename,finalDeformation);
-        
+      
+
+      ImageUtils<DeformationFieldType>::writeImage("C:\\Users\\jstrasse\\Desktop\\finalDef2.mhd",finalDeformation);
       LOG<<"Deforming Images.."<<endl;
       ImagePointerType deformedAtlasImage=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasImage,finalDeformation);
       ImageUtils<ImageType>::writeImage(filterConfig.outputDeformedFilename,deformedAtlasImage);
-      LOGV(20)<<"Final SAD: "<<ImageUtils<ImageType>::sumAbsDist((ImageConstPointerType)deformedAtlasImage,(ImageConstPointerType)targetImage)<<endl;
+      //LOGV(20)<<"Final SAD: "<<ImageUtils<ImageType>::sumAbsDist((ImageConstPointerType)deformedAtlasImage,(ImageConstPointerType)targetImage)<<endl;
         
       if (originalAtlasSegmentation.IsNotNull()){
-        ImagePointerType deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasSegmentation,finalDeformation,true);
-        ImageUtils<ImageType>::writeImage(filterConfig.outputDeformedSegmentationFilename,deformedAtlasSegmentation);
+        //ImagePointerType deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasSegmentation,finalDeformation,true);
+        //ImageUtils<ImageType>::writeImage(filterConfig.outputDeformedSegmentationFilename,deformedAtlasSegmentation);
       }  
     }
-    
+
+    *fieldResX = targetResX;
+    *fieldResY = targetResY;
+    *fieldResZ = targetResZ;
+
+
+    *fieldSizeX = targetSizeX;
+    *fieldSizeY = targetSizeY;
+    *fieldSizeZ = targetSizeZ;
+    *fieldOriginX = voiOriginX;
+    *fieldOriginY = voiOriginY;
+    *fieldOriginZ = voiOriginZ;
+    *fieldVectors = new float[*fieldSizeX * *fieldSizeY * *fieldSizeZ * 3];
+
+    DeformationFieldType::IndexType vectorIndex;
+    for (int zt = 0; zt < *fieldSizeZ; zt++) {
+      for (int yt = 0; yt < *fieldSizeY; yt++) {
+        for (int xt = 0; xt < *fieldSizeX; xt++) {
+          vectorIndex[0] = xt;
+          vectorIndex[1] = yt;
+          vectorIndex[2] = zt;
+          DisplacementType a = finalDeformation->GetPixel(vectorIndex);
+          (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 0] = a[0];
+          (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 1] = a[1];
+          (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 2] = a[2];
+        }
+      }
+    }
+
+    progress = 99;
+    realProgressCallbackFunc(progress);
+
     OUTPUTTIMER;
     if (filterConfig.logFileName!=""){
       mylog.flushLog(filterConfig.logFileName);
     }
+
+
+        progress = 101;
+    realProgressCallbackFunc(progress);
+
+    return NULL;
   
 }
