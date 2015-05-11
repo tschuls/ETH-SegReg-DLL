@@ -85,6 +85,7 @@ namespace SRS{
     ArgumentParser * as;
   public:
     SRSConfig(){
+      as=NULL;
       auxiliaryLabel=1;
       atlasLandmarkFilename="";
       targetLandmarkFilename="";
@@ -159,7 +160,7 @@ namespace SRS{
       solver="GCO";
     }
     ~SRSConfig(){
-      delete as;
+      if (as!=NULL) delete as;
       //delete levels;
     }
     void parseParams(int argc, char** argv){
@@ -350,23 +351,18 @@ namespace SRS{
       //	as->help();
       //as->defaultErrorHandling();
       as->parse();
-	
+	  Initialize();
+	}
+	void Initialize(){
       if (displacementSampling==-1) displacementSampling=maxDisplacement;
 	
       levels=new int[nLevels+1];
-      if (tmp_levels[0]==-1){
-	levels[0]=startTiling;
-      }else{
-	levels[0]=tmp_levels[0];
-      }
+	    levels[0]=startTiling;
       for (int i=1;i<nLevels+1;++i){
-	if (tmp_levels[i]==-1){
-	  levels[i]=levels[i-1]*2-1;
-	}else{
-	  levels[i]=tmp_levels[i];
-	}
-      }
+	      levels[i]=levels[i-1]*2-1;
+	    }
       nRegSamples=std::vector<int>(std::max(nLevels,1),maxDisplacement);
+      std::string regSampleString="";
       if (regSampleString!=""){
 	std::stringstream ss(regSampleString);
 	int i;
