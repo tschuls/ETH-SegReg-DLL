@@ -1,4 +1,4 @@
-extern "C" __declspec(dllexport) wchar_t* __cdecl DoRegistration2(
+extern "C" __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   // Source volume
   int             sourceSizeX,
   int             sourceSizeY,   
