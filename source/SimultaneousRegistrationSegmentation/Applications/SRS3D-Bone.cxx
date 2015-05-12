@@ -206,22 +206,19 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     targetImage->SetRegions(targetRegion);
     targetImage->Allocate();
 
-    ImageType::IndexType index;
-    for (int zt = 0; zt < targetSizeZ; zt++) {
-      for (int yt = 0; yt < targetSizeY; yt++) {
-        for (int xt = 0; xt < targetSizeX; xt++) {
-          index[0] = xt;
-          index[1] = yt;
-          index[2] = zt;
-          targetImage->SetPixel(index, targetPixels[xt + yt*targetSizeY + zt * (targetSizeX * targetSizeY)]);
-        }
-      }
-    }
     double targetSpacing[3];
     targetSpacing[0] = targetResX;
     targetSpacing[1] = targetResY;
     targetSpacing[2] = targetResZ;
     targetImage ->SetSpacing(targetSpacing);
+
+    itk::ImageRegionIteratorWithIndex<ImageType> targetIterator(targetImage,targetImage->GetLargestPossibleRegion());
+    int offset = 0;
+    for (targetIterator.GoToBegin();!targetIterator.IsAtEnd();++targetIterator){
+      targetIterator.Set(targetPixels[offset++]);
+    }
+    
+
 
     //write image as a test
     //typedef  itk::ImageFileWriter< ImageType > WriterType;
@@ -246,7 +243,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     if (!targetImage) {LOG<<"failed!"<<endl; exit(0);}
 
 
-    LOG<<"create atlas image :"<<filterConfig.atlasFilename<<std::endl;
     ImagePointerType atlasImage = ImageType::New();
 
     ImageType::SizeType  size;
@@ -260,16 +256,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
     atlasImage->SetRegions( region );
     atlasImage->Allocate();
-    for (int zt = 0; zt < sourceSizeZ; zt++) {
-      for (int yt = 0; yt < sourceSizeY; yt++) {
-        for (int xt = 0; xt < sourceSizeX; xt++) {
-          index[0] = xt;
-          index[1] = yt;
-          index[2] = zt;
-          atlasImage->SetPixel(index, sourcePixels[xt + yt*sourceSizeY + zt * (sourceSizeX * sourceSizeY)]);
-        }
-      }
-    }
 
     double spacing[3];
     spacing[0] = sourceResX;
@@ -278,16 +264,21 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     atlasImage ->SetSpacing(spacing);
 
 
+    itk::ImageRegionIteratorWithIndex<ImageType> sourceIterator(atlasImage,atlasImage->GetLargestPossibleRegion());
+    offset = 0;
+    for (sourceIterator.GoToBegin();!sourceIterator.IsAtEnd();++sourceIterator){
+      sourceIterator.Set(sourcePixels[offset++]);
+    }
+
+
     //write image as a test
+    //typedef  itk::ImageFileWriter< ImageType > WriterType;
     //WriterType::Pointer atlasWriter = WriterType::New();
     //std::string seriesFormatAtlas("C:\\Users\\jstrasse\\Desktop");
-    //seriesFormatAtlas = seriesFormatAtlas + "\\" + "target2.nii.gz";
+    //seriesFormatAtlas = seriesFormatAtlas + "\\" + "atlas.nii.gz";
     //atlasWriter->SetFileName(seriesFormatAtlas);
     //atlasWriter->SetInput(atlasImage);
     //atlasWriter->Update();
-
-
-
 
 
     //if (filterConfig.atlasFilename!="") {
@@ -298,13 +289,10 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     //    }
     //  #endif
     //}
-    if (!atlasImage) {LOG<<"Warning: no atlas image loaded!"<<endl;
-
-
-    progress = 10;
-    realProgressCallbackFunc(progress);
-
-    LOG<<"Loading atlas segmentation image :"<<filterConfig.atlasSegmentationFilename<<std::endl;}
+    if (!atlasImage) {
+      LOG<<"Warning: no atlas image loaded!"<<endl;
+      LOG<<"Loading atlas segmentation image :"<<filterConfig.atlasSegmentationFilename<<std::endl;
+    }
     ImagePointerType atlasSegmentation;
     if (filterConfig.atlasSegmentationFilename !="")atlasSegmentation=ImageUtils<ImageType>::readImage(filterConfig.atlasSegmentationFilename);
     if (!atlasSegmentation) {LOG<<"Warning: no atlas segmentation loaded!"<<endl; }
@@ -530,7 +518,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     }
 
 
-        progress = 101;
+    progress = 101;
     realProgressCallbackFunc(progress);
 
     return NULL;
