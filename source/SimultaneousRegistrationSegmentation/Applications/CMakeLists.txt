@@ -34,7 +34,7 @@ endif()
 #optional linking
 if( ${USE_TRWS} MATCHES "ON" )
     TARGET_LINK_LIBRARIES(SRS2D-Bone  TRWS_LIBRARIES     )
-TARGET_LINK_LIBRARIES(SRS3D-Bone  TRWS_LIBRARIES     )
+TARGET_LINK_LIBRARIES(DeformableRegistrationAlgorithm  TRWS_LIBRARIES     )
   TARGET_LINK_LIBRARIES(SRS3D-Bone-Multilabel  TRWS_LIBRARIES     )
   if( ${USE_RF} MATCHES "ON" )
 
