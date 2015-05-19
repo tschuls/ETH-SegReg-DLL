@@ -86,7 +86,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   bool            (*progressCallbackFunc)(int progress)
   )
 {
-
+    const bool DEFORM_ATLAS_IMAGE = false;
+    const bool WRITE_IMAGES_OUT = false;
     // re-route the progress callback
     realProgressCallbackFunc = progressCallbackFunc;
 
@@ -329,14 +330,18 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
         targetGradient=(ImageUtils<ImageType>::readImage(filterConfig.targetGradientFilename));
       }else{
         targetGradient=Preprocessing<ImageType>::computeSheetness(targetImage);
-        LOGI(8,ImageUtils<ImageType>::writeImage("targetsheetness.nii",targetGradient));  
+        if (WRITE_IMAGES_OUT) {
+          LOGI(8,ImageUtils<ImageType>::writeImage("targetsheetness.nii",targetGradient));  
+        }
       }
       if (filterConfig.atlasGradientFilename!=""){
         atlasGradient=(ImageUtils<ImageType>::readImage(filterConfig.atlasGradientFilename));
       }else{
         if (atlasImage.IsNotNull()){
           atlasGradient=Preprocessing<ImageType>::computeSheetness(atlasImage);
-          LOGI(8,ImageUtils<ImageType>::writeImage("atlassheetness.nii",atlasGradient));
+          if (WRITE_IMAGES_OUT) {
+            LOGI(8,ImageUtils<ImageType>::writeImage("atlassheetness.nii",atlasGradient));
+          }
         }
       }
   
@@ -402,10 +407,14 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
     if (filterConfig.affineBulkTransform!=""){
       TransfUtils<ImageType>::AffineTransformPointerType affine=TransfUtils<ImageType>::readAffine(filterConfig.affineBulkTransform);
-      LOGI(8,ImageUtils<ImageType>::writeImage("def.nii",TransfUtils<ImageType>::affineDeformImage(originalAtlasImage,affine,originalTargetImage)));
+      if (WRITE_IMAGES_OUT) {
+        LOGI(8,ImageUtils<ImageType>::writeImage("def.nii",TransfUtils<ImageType>::affineDeformImage(originalAtlasImage,affine,originalTargetImage)));
+      }
       //DeformationFieldPointerType transf=TransfUtils<ImageType>::affineToDisplacementField(affine,originalTargetImage);
       DeformationFieldPointerType transf=TransfUtils<ImageType>::affineToDisplacementField(affine,targetImage);
-      LOGI(8,ImageUtils<ImageType>::writeImage("def2.nii",TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)originalAtlasImage,transf)));
+      if (WRITE_IMAGES_OUT) {
+        LOGI(8,ImageUtils<ImageType>::writeImage("def2.nii",TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)originalAtlasImage,transf)));
+      }
       filter->setBulkTransform(transf);
     }
     else if (filterConfig.bulkTransformationField!=""){
@@ -456,7 +465,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     }
 
     if (targetSegmentationEstimate.IsNotNull()){
-      ImageUtils<ImageType>::writeImage(filterConfig.segmentationOutputFilename,targetSegmentationEstimate);
+      if (WRITE_IMAGES_OUT) {
+        ImageUtils<ImageType>::writeImage(filterConfig.segmentationOutputFilename,targetSegmentationEstimate);
+      }
     }
     
     if (finalDeformation.IsNotNull() ) {
@@ -469,11 +480,15 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
       }
       
 
-      ImageUtils<DeformationFieldType>::writeImage("C:\\Users\\jstrasse\\Desktop\\finalDef2.mhd",finalDeformation);
-      LOG<<"Deforming Images.."<<endl;
-      ImagePointerType deformedAtlasImage=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasImage,finalDeformation);
-      ImageUtils<ImageType>::writeImage(filterConfig.outputDeformedFilename,deformedAtlasImage);
-      //LOGV(20)<<"Final SAD: "<<ImageUtils<ImageType>::sumAbsDist((ImageConstPointerType)deformedAtlasImage,(ImageConstPointerType)targetImage)<<endl;
+      //ImageUtils<DeformationFieldType>::writeImage("C:\\Users\\jstrasse\\Desktop\\finalDef2.mhd",finalDeformation);
+      
+      if (DEFORM_ATLAS_IMAGE) {
+        LOG<<"Deforming Images.."<<endl;
+        ImagePointerType deformedAtlasImage=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasImage,finalDeformation);
+        ImageUtils<ImageType>::writeImage(filterConfig.outputDeformedFilename,deformedAtlasImage);
+        LOGV(20)<<"Final SAD: "<<ImageUtils<ImageType>::sumAbsDist((ImageConstPointerType)deformedAtlasImage,(ImageConstPointerType)targetImage)<<endl;
+      }
+
         
       if (originalAtlasSegmentation.IsNotNull()){
         //ImagePointerType deformedAtlasSegmentation=TransfUtils<ImageType>::warpImage((ImageConstPointerType)originalAtlasSegmentation,finalDeformation,true);
