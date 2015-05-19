@@ -92,31 +92,47 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     realProgressCallbackFunc = progressCallbackFunc;
 
     int progress = 0;
-
-    //feraiseexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
-    SRSConfig filterConfig;
-    filterConfig.outputDeformedFilename = "C:\\Users\\jstrasse\\Desktop\\deformedAtlas.nii";
-    filterConfig.defFilename = "C:\\Users\\jstrasse\\Desktop\\deformedField.mhd";
-    filterConfig.verbose = 5;
-    filterConfig.downScale = 0.25;
-    filterConfig.imageLevels = 4;
-    filterConfig.useLowResBSpline = true;
-    filterConfig.OPENGM = false;
-    filterConfig.iterationsPerLevel=4;
-    filterConfig.solver = "GCO";
-    filterConfig.linearDeformationInterpolation = true;
-    filterConfig.logFileName = "C:\\Users\\jstrasse\\Desktop\\SRS_LogFile.txt";
-
-    filterConfig.Initialize();
-    
-    progress = 1;
     realProgressCallbackFunc(progress);
+
+
+    std::ofstream out("C:\\Users\\jstrasse\\Desktop\\out.txt");
+    std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+    SRSConfig filterConfig;
+
+    //read params from file
+    std::ifstream file;
+    file.open ("C:\\TFS\\IRS\\sources\\Tools\\BatcherSmartSeg\\branches\\2.3-current\\_bin\\x64\\Release\\DeformableRegistrationDebug_V2\\srsConfig.txt");
+    std::string word;
+    std::vector<std::string> allParams;
+    while ( file >> word ) {
+      allParams.push_back(word);
+    }
+
+    //convert params into c char array
+    char ** arr = new char*[allParams.size()];
+    for(size_t i = 0; i < allParams.size(); i++){
+        arr[i] = new char[allParams[i].size() + 1];
+        strcpy(arr[i], allParams[i].c_str());
+    }
+
+    filterConfig.parseParams(allParams.size(),arr);
     
-    //filterConfig.parseParams(argc,argv);
+    progress = 3;
+    realProgressCallbackFunc(progress);
+
     if (filterConfig.logFileName!=""){
         mylog.setCachedLogging();
     }
+    
+    progress = 5;
+    realProgressCallbackFunc(progress);
+    
     logSetStage("Init");
+
+    progress = 6;
+    realProgressCallbackFunc(progress);
   
     typedef unsigned short PixelType;
     const unsigned int D=3;
