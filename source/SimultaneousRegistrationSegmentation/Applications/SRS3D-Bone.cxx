@@ -548,6 +548,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
       mylog.flushLog(filterConfig.logFileName);
     }
 
+    std::cout.rdbuf(coutbuf); //reset to standard output again
+
 
     progress = 101;
     realProgressCallbackFunc(progress);
