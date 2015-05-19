@@ -203,7 +203,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     logSetVerbosity(filterConfig.verbose);
     //LOG<<"Loading target image :"<<filterConfig.targetFilename<<std::endl;
     //ImagePointerType targetImage=ImageUtils<ImageType>::readImage(filterConfig.targetFilename);
-    LOG << "create target image" << std::endl;
     ImageType::Pointer targetImage = ImageType::New();
 
     ImageType::SizeType  targetSize;
@@ -245,10 +244,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     //writer->SetFileName(seriesFormat);
     //writer->SetInput(targetImage);
     //writer->Update();
-
-
-    progress = 5;
-    realProgressCallbackFunc(progress);
 
 
     #if 0
