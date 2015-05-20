@@ -103,7 +103,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
   //read params from file
   std::ifstream file;
-  file.open ("C:\\TFS\\IRS\\sources\\Tools\\BatcherSmartSeg\\branches\\2.3-current\\_bin\\x64\\Release\\DeformableRegistrationDebug_V2\\srsConfig.txt");
+  file.open ("C:\\_SmartSeg\\srsConfigs.txt");
+
   std::string word;
   std::vector<std::string> allParams;
   while ( file >> word ) {
