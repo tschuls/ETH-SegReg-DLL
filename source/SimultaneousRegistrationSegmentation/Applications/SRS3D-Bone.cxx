@@ -18,6 +18,7 @@
 #include "Graph.h"
 #include "FastGraph.h"
 #include "BaseLabel.h"
+#include "Metrics.h"
 #include "Potential-Registration-Unary.h"
 #include "Potential-Registration-Pairwise.h"
 #include "Potential-Segmentation-Unary.h"
@@ -135,10 +136,11 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   progress = 6;
   realProgressCallbackFunc(progress);
 
-  typedef unsigned short PixelType;
+  typedef float PixelType;
   const unsigned int D=3;
   typedef Image<PixelType,D> ImageType;
   typedef ImageType::Pointer ImagePointerType;
+  typedef Image<float, D> FloatImageType;
   typedef ImageType::ConstPointer ImageConstPointerType;
   typedef TransfUtils<ImageType>::DisplacementType DisplacementType;
   typedef SparseRegistrationLabelMapper<ImageType,DisplacementType> LabelMapperType;
@@ -155,8 +157,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   typedef PairwisePotentialSegmentationMarcel<ImageType> SegmentationPairwisePotentialType;
 
   // //reg
-  //typedef FastUnaryPotentialRegistrationSAD< LabelMapperType, ImageType > RegistrationUnaryPotentialType;
-  typedef FastUnaryPotentialRegistrationNCC< ImageType > RegistrationUnaryPotentialType;
+	typedef MultiThreadedLocalSimilarityNCC<FloatImageType, ImageType> SimilarityType;
+	//typedef MultiThreadedLocalSimilaritySSD<FloatImageType, ImageType> SimilarityType;
+	typedef UnaryRegistrationPotentialWithCaching< ImageType, SimilarityType > RegistrationUnaryPotentialType;
 
   typedef PairwisePotentialRegistration< ImageType > RegistrationPairwisePotentialType;
 
@@ -164,12 +167,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   //typedef PairwisePotentialMultilabelCoherence< ImageType > CoherencePairwisePotentialType;
 
 
-#define POTENTIALINHERITANCE
-#ifdef POTENTIALINHERITANCE
-  typedef FastGraphModel<ImageType>        GraphType;
-#else
+
   typedef FastGraphModel<ImageType,RegistrationUnaryPotentialType,RegistrationPairwisePotentialType,SegmentationUnaryPotentialType,SegmentationPairwisePotentialType,CoherencePairwisePotentialType>        GraphType;
-#endif
+
 
   typedef HierarchicalSRSImageToImageFilter<GraphType>        FilterType;    
   //create filter
@@ -184,21 +184,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   RegistrationPairwisePotentialType::Pointer pairwiseRegistrationPot=RegistrationPairwisePotentialType::New();
   SegmentationPairwisePotentialType::Pointer pairwiseSegmentationPot=SegmentationPairwisePotentialType::New();
   CoherencePairwisePotentialType::Pointer pairwiseCoherencePot=CoherencePairwisePotentialType::New();
-#ifdef POTENTIALINHERITANCE
 
-  filter->setUnaryRegistrationPotentialFunction(static_cast<FastUnaryPotentialRegistrationNCC<ImageType>::Pointer>(unaryRegistrationPot));
-  filter->setPairwiseRegistrationPotentialFunction(static_cast< PairwisePotentialRegistration<ImageType>::Pointer>(pairwiseRegistrationPot));
-  filter->setUnarySegmentationPotentialFunction(static_cast< UnaryPotentialSegmentation<ImageType>::Pointer>(unarySegmentationPot));
-  filter->setPairwiseCoherencePotentialFunction(static_cast< PairwisePotentialCoherence<ImageType>::Pointer>(pairwiseCoherencePot));
-  filter->setPairwiseSegmentationPotentialFunction(static_cast< PairwisePotentialSegmentation<ImageType>::Pointer>(pairwiseSegmentationPot));
-#else
   filter->setUnaryRegistrationPotentialFunction((unaryRegistrationPot));
   filter->setPairwiseRegistrationPotentialFunction((pairwiseRegistrationPot));
   filter->setUnarySegmentationPotentialFunction((unarySegmentationPot));
   filter->setPairwiseCoherencePotentialFunction((pairwiseCoherencePot));
   filter->setPairwiseSegmentationPotentialFunction((pairwiseSegmentationPot));
 
-#endif
 
   logUpdateStage("IO");
   logSetVerbosity(filterConfig.verbose);
