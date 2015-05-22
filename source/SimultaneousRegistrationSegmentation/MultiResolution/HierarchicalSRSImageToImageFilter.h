@@ -137,7 +137,7 @@ namespace SRS{
         //typedef ITKGraphModel<UnaryPotentialType,LabelMapperType,ImageType> GraphModelType;
     
     private:
-        SRSConfig * m_config;
+        SRSConfig::Pointer m_config;
         DeformationFieldPointerType m_finalDeformation,m_bulkTransform;
         bool m_useBulkTransform;
         ImagePointerType m_finalSegmentation;
@@ -385,7 +385,7 @@ namespace SRS{
             LOGV(2)<<VAR(computeLowResolutionBsplineIfPossible)<<std::endl;
             typename GraphModelType::Pointer graph=GraphModelType::New();
             LOGV(2)<<"m_config" << m_config <<std::endl;
-            graph->setConfig(*m_config);
+            graph->setConfig(m_config);
              //register images and potentials
             graph->setUnaryRegistrationFunction(m_unaryRegistrationPot);
             graph->setPairwiseRegistrationFunction(m_pairwiseRegistrationPot);
@@ -438,7 +438,7 @@ namespace SRS{
                     logSetStage("segmentation grid size estimation");
                     //use same level of detail as used for the graph
                     //first set up dummy graph from original target image
-                    graph->setConfig(*m_config);
+                    graph->setConfig(m_config);
                     graph->setTargetImage(m_inputTargetImage);
                     graph->setDisplacementFactor(labelScalingFactor);
                     graph->initGraph(level);
@@ -758,14 +758,11 @@ namespace SRS{
                     logUpdateStage(":Postprocessing");
                     
                     if (regist || coherence){
-
                         fullDeformation = deformation;
                         composedDeformation=TransfUtils<ImageType>::composeDeformations(fullDeformation,previousFullDeformation);
                         //composedDeformation=TransfUtils<ImageType>::composeDeformations(previousFullDeformation,fullDeformation);
                      
                     }
-
-                    
 
                     previousFullDeformation=composedDeformation;
                     labelScalingFactor*=m_config->displacementRescalingFactor;
@@ -826,6 +823,7 @@ namespace SRS{
                     logResetStage;//inner
                     logResetStage;//iter
                 }//iter
+
                 logResetStage;//levels
                 if (pixelGrid){
                     m_config->displacementScaling*=0.5;
@@ -836,8 +834,7 @@ namespace SRS{
             }
             m_finalSegmentation=(segmentation);
 
-	    m_finalDeformation=previousFullDeformation;
-
+	          m_finalDeformation=previousFullDeformation;
             delete labelmapper;
         }//run
       
