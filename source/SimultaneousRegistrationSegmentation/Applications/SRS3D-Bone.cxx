@@ -108,6 +108,31 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   progress = 3;
   realProgressCallbackFunc(progress);
 
+  //read optional arguments
+  wstring firstString(optionalArguments[1]);
+  string atlasDir(firstString.begin(), firstString.end());
+
+  wstring secondString(optionalArguments[3]);
+  string targetDir(secondString.begin(), secondString.end());
+
+  //string atlasDir = "C:\\_Patients\\patientRomExpertCaseCut\\ECI053801";
+  //string targetDir = "C:\\_Patients\\patientRomExpertCaseCut\\ECI054005";
+
+  LOG<<"ATLAS DIR: " + atlasDir<<std::endl;
+  LOG<<"TARGET DIR: " + targetDir<<std::endl;
+
+  filterConfig->atlasLandmarkFilename = atlasDir + "\\landmarks.txt";
+  filterConfig->targetLandmarkFilename = targetDir + "\\landmarks.txt";
+  if (true) {
+    LOG<<"Mask Image: " + atlasDir + "\\iMask.vtk"<<std::endl;
+    filterConfig->atlasMaskFilename = atlasDir + "\\iMask.vtk";
+  } else {
+    LOG<<"NO MASK IMAGE"<<std::endl;
+  }
+
+
+
+
   if (filterConfig->logFileName!=""){
     mylog.setCachedLogging();
   }
