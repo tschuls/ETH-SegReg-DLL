@@ -230,6 +230,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   targetSpacing[2] = targetResZ;
   targetImage ->SetSpacing(targetSpacing);
 
+  double targetOrigin[3];
+  for (int d = 0; d<3; ++d){
+    targetOrigin[d] = -0.5*targetSpacing[d] * targetSize[d];
+  }
+  targetImage ->SetOrigin(targetOrigin);
+
+
   itk::ImageRegionIteratorWithIndex<ImageType> targetIterator(targetImage,targetImage->GetLargestPossibleRegion());
   int offset = 0;
   for (targetIterator.GoToBegin();!targetIterator.IsAtEnd();++targetIterator){
@@ -276,6 +283,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   spacing[1] = sourceResY;
   spacing[2] = sourceResZ;
   atlasImage ->SetSpacing(spacing);
+
+  double sourceOrigin[3];
+  for (int d = 0; d<3; ++d){
+    sourceOrigin[d] = -0.5*spacing[d] * size[d];
+  }
+  atlasImage->SetOrigin(sourceOrigin);
+
 
 
   itk::ImageRegionIteratorWithIndex<ImageType> sourceIterator(atlasImage,atlasImage->GetLargestPossibleRegion());
