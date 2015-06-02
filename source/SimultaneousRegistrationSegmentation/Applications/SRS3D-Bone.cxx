@@ -307,6 +307,37 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   //atlasWriter->SetFileName(seriesFormatAtlas);
   //atlasWriter->SetInput(atlasImage);
   //atlasWriter->Update();
+  LOG << "Creating initial affine" << std::endl;
+  typedef itk::AffineTransform<double,3> AffineTransformType;
+  AffineTransformType::Pointer affine = AffineTransformType::New();
+  AffineTransformType::MatrixType matrix;
+  AffineTransformType::OutputVectorType translation;
+
+  matrix(0, 0) = rigidAlignment[0];
+  matrix(0, 1) = rigidAlignment[1];
+  matrix(0, 2) = rigidAlignment[2];
+  translation[0] = rigidAlignment[3];
+  matrix(1, 0) = rigidAlignment[4];
+  matrix(1, 1) = rigidAlignment[5];
+  matrix(1, 2) = rigidAlignment[6];
+  translation[1] = rigidAlignment[7];
+  matrix(2, 0) = rigidAlignment[8];
+  matrix(2, 1) = rigidAlignment[9];
+  matrix(2, 2) = rigidAlignment[10];
+  translation[2] = rigidAlignment[11];
+
+  affine->SetTranslation(translation);
+  affine->SetMatrix(matrix);
+
+  LOGV(1) << VAR(affine) << std::endl;
+  DeformationFieldPointerType transf = TransfUtils<ImageType>::affineToDisplacementField(affine, targetImage);
+  //ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasImageAfterTransform.nii", TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)atlasImage,transf));
+
+
+  //LOGV(8, ImageUtils<ImageType>::writeImage("def2.nii", TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)originalAtlasImage, transf)));
+  filter->setBulkTransform(transf);
+
+
 
 
   //if (filterConfig.atlasFilename!="") {
