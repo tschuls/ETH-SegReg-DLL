@@ -539,7 +539,23 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     }
 
 
-    //ImageUtils<DeformationFieldType>::writeImage("C:\\Users\\jstrasse\\Desktop\\finalDef2.mhd",finalDeformation);
+    
+    LOGV(1) << "Inverting affine" << std::endl;
+    AffineTransformType::Pointer inverseAffine = AffineTransformType::New();
+                                
+    bool success = affine->GetInverse(inverseAffine);
+    LOGV(1) << VAR(success)<<" "<<VAR(inverseAffine) << std::endl;
+    if (success){
+      DeformationFieldPointerType transf = TransfUtils<ImageType>::affineToDisplacementField(inverseAffine, targetImage);
+      finalDeformation = TransfUtils<ImageType>::composeDeformations(finalDeformation, transf);
+    }
+    else{
+      LOG << "Inverting affine failed, result might be incorrect" << std::endl;
+    }
+
+
+
+    //ImageUtils<DeformationFieldType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_finalDefAfter.mhd",finalDeformation);
 
     if (DEFORM_ATLAS_IMAGE) {
       LOG<<"Deforming Images.."<<endl;
