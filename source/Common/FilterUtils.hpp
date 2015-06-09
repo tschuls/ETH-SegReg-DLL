@@ -527,6 +527,41 @@ public:
         resampler->Update();
         return resampler->GetOutput();
     }
+
+    static OutputImagePointer ConstantResample(InputImagePointer input) {
+      InputImage::SizeType size = input->GetLargestPossibleRegion().GetSize();
+      if (size[0]>=512 && size[1]>=512) {
+        size[0] = size[0]/2;
+        size[1] = size[1]/2;
+        InputImage::SpacingType spacing = input->GetSpacing();
+        spacing[0] *=2;
+        spacing[1] *=2;
+        //resample to equal spacing
+        double factor = spacing[0]/spacing[2];
+        spacing[2] *= factor;
+        size[2] = size[2]/factor;
+
+        InputImage::PointType origin = input->GetOrigin();
+        origin[0] = -0.5*spacing[0] * size[0];
+        origin[1] = -0.5*spacing[1] * size[1];
+        origin[2] = -0.5*spacing[2] * size[2];
+
+        ResampleFilterPointerType resampler=ResampleFilterType::New();
+        LinearInterpolatorPointerType interpol=LinearInterpolatorType::New();
+        resampler->SetInput(input);
+        resampler->SetOutputOrigin(input->GetOrigin());
+        resampler->SetOutputDirection ( input->GetDirection() );
+        resampler->SetInterpolator(interpol);
+
+        resampler->SetSize(size);
+        resampler->SetOutputSpacing(spacing);
+        resampler->Update();
+        return resampler->GetOutput();
+      } 
+      return input;
+
+
+    }
   
     static OutputImagePointer LinearResample( InputImagePointer input,  InputImagePointer reference, bool smooth) {
         return LinearResample((ConstInputImagePointer)input,(ConstInputImagePointer)reference, smooth);
