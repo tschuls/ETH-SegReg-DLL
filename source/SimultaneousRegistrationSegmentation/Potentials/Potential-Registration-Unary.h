@@ -481,7 +481,7 @@ namespace SRS{
 #else
 
       TIME(deformedAtlas = TransfUtils<ImageType>::translateImage(this->m_deformedAtlasImage, displacement));
-      if (deformedMask.IsNotNull()){
+      if (m_deformedMask.IsNotNull()){
         TIME(deformedMask = TransfUtils<ImageType>::translateImage(this->m_deformedMask, displacement, true));
       }
       // ImageUtils<ImageType>::writeImage("mask.nii",deformedMask);
