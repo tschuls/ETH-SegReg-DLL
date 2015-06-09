@@ -251,8 +251,8 @@ namespace SRS{
                 m_unaryRegistrationPot->setThreshold(m_config->thresh_UnaryReg);
                 m_unaryRegistrationPot->setLogPotential(m_config->log_UnaryReg);
                 m_unaryRegistrationPot->setNoOutsidePolicy(m_config->penalizeOutside);
-                m_unaryRegistrationPot->SetAtlasLandmarksFile(m_config->atlasLandmarkFilename);
-                m_unaryRegistrationPot->SetTargetLandmarksFile(m_config->targetLandmarkFilename);
+                m_unaryRegistrationPot->SetAtlasLandmarksFileWithOrigin(m_config->atlasLandmarkFilename, m_atlasImage);
+                m_unaryRegistrationPot->SetTargetLandmarksFileWithOrigin(m_config->targetLandmarkFilename, m_targetImage);
                 m_unaryRegistrationPot->setNormalizeImages(m_config->normalizeImages);
                 //MOVED HERE, HOPE THIS DOES NOT BREAK ANYTHING
                 m_unaryRegistrationPot->SetTargetImage(m_targetImage);

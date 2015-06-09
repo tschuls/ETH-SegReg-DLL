@@ -296,27 +296,9 @@ namespace SRS{
         bool m_normalize;
         PointsContainerPointer m_atlasLandmarks,m_targetLandmarks;
         FloatImagePointerType m_unaryPotentialWeights;
-    public:
-        /** Method for creation through the object factory. */
-        itkNewMacro(Self);
-        /** Standard part of every itk Object. */
-        itkTypeMacro(FastRegistrationUnaryPotentialNCC, Object);
-        
-        UnaryRegistrationPotentialWithCaching():Superclass(){
-            m_normalizationFactor=1.0;
-            m_normalize=false;
-            m_unaryPotentialWeights=NULL;
-            
-        }
-        void SetPotentialWeights(FloatImagePointerType img){m_unaryPotentialWeights=img;}
-        void SetAtlasLandmarks(PointsContainerPointer p){m_atlasLandmarks=p;}
-        void SetTargetLandmarks(PointsContainerPointer p){m_targetLandmarks=p;}
-        void SetAtlasLandmarksFile(string f){
-            SetAtlasLandmarks(readLandmarks(f));
-        }
-        void SetTargetLandmarksFile(string f){
-            SetTargetLandmarks(readLandmarks(f));
-        }
+
+
+    private:
         PointsContainerPointer readLandmarks(string f){
             if (f==""){
                 return NULL;
@@ -345,7 +327,94 @@ namespace SRS{
             } 
             return points;
         }
+
+
+        PointsContainerPointer readLandmarksWithOrigin(string filename, std::vector<double> extent) {
+          if (filename==""){
+              return NULL;
+          }
+          typename PointSetType::Pointer  pointSet = PointSetType::New();
+          PointsContainerPointer points=pointSet->GetPoints();
+          
+          ifstream ifs(filename.c_str());
+
+          //read origin
+          PointType origin;
+          for (int d=0;d<D;++d) {
+            ifs>>origin[d];
+          }
+
+          int i=0;
+          while ( ! ifs.eof() ) {
+              PointType point;
+              bool fullPoint=true;
+              for (int d=0;d<D;++d){
+                  ifs>>point[d];
+                  if (ifs.eof()){
+                      fullPoint=false;
+                      break;
+                  }
+                   
+              }
+              if (fullPoint){
+                //move point by: (Landmark-Origin)-Extent/2
+                point = point - origin;
+                for (int d=0;d<D;++d) {
+                  point[d] = point[d] - extent[d]/2;
+                }
+                points->InsertElement(i, point);
+                ++i;
+              }
+          } 
+          LOG << "read landmarks from file: " << filename << " with amount of points: " << i << std::endl;
+          return points;
+        }
+
+    public:
+        /** Method for creation through the object factory. */
+        itkNewMacro(Self);
+        /** Standard part of every itk Object. */
+        itkTypeMacro(FastRegistrationUnaryPotentialNCC, Object);
+        
+        UnaryRegistrationPotentialWithCaching():Superclass(){
+            m_normalizationFactor=1.0;
+            m_normalize=false;
+            m_unaryPotentialWeights=NULL;
+            
+        }
+        void SetPotentialWeights(FloatImagePointerType img){m_unaryPotentialWeights=img;}
+        void SetAtlasLandmarks(PointsContainerPointer p){m_atlasLandmarks=p;}
+        void SetTargetLandmarks(PointsContainerPointer p){m_targetLandmarks=p;}
+        void SetAtlasLandmarksFile(string f){
+            SetAtlasLandmarks(readLandmarks(f));
+        }
+        void SetTargetLandmarksFile(string f){
+            SetTargetLandmarks(readLandmarks(f));
+        }
        
+        void SetAtlasLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType atlasImage){
+          //get atlas extent
+          std::vector<double> extent(D);
+          ImageType::SpacingType spacing = atlasImage->GetSpacing();
+          ImageType::SizeType size = atlasImage->GetLargestPossibleRegion().GetSize();
+          for (int d=0;d<D;++d) {
+            extent[d] = spacing[d] * size[d];
+          }
+          SetAtlasLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
+        }
+
+        void SetTargetLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType targetImage){
+          //get atlas extent
+          std::vector<double> extent(D);
+          ImageType::SpacingType spacing = targetImage->GetSpacing();
+          ImageType::SizeType size = targetImage->GetLargestPossibleRegion().GetSize();
+          for (int d=0;d<D;++d) {
+            extent[d] = spacing[d] * size[d];
+          }
+          SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
+        }
+
+
         void setNormalize(bool b){m_normalize=b;}
         void resetNormalize(){
             m_normalize=false;
