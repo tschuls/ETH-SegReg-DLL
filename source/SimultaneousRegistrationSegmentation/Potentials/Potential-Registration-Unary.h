@@ -1,10 +1,10 @@
 
 /*
- * Potentials.h
- *
- *  Created on: Nov 24, 2010
- *      Author: gasst
- */
+* Potentials.h
+*
+*  Created on: Nov 24, 2010
+*      Author: gasst
+*/
 
 #pragma once
 
@@ -38,406 +38,406 @@ namespace SRS{
 
 
   /** \brief
-   * Local NCC registration potential, also serves as base class for the remaining registration potential classes
-   */
-    template<class TImage>
-    class UnaryRegistrationPotentialBase : public itk::Object{
-    public:
-        //itk declarations
-        typedef UnaryRegistrationPotentialBase            Self;
-        typedef itk::SmartPointer<Self>        Pointer;
-        typedef itk::SmartPointer<const Self>  ConstPointer;
+  * Local NCC registration potential, also serves as base class for the remaining registration potential classes
+  */
+  template<class TImage>
+  class UnaryRegistrationPotentialBase : public itk::Object{
+  public:
+    //itk declarations
+    typedef UnaryRegistrationPotentialBase            Self;
+    typedef itk::SmartPointer<Self>        Pointer;
+    typedef itk::SmartPointer<const Self>  ConstPointer;
 
-        typedef	TImage ImageType;
-        typedef typename ImageType::Pointer ImagePointerType;
-        typedef typename ImageType::ConstPointer ConstImagePointerType;
-        typedef typename ImageType::PointType PointType;
-
-
-        typedef typename TransfUtils<ImageType>::DisplacementType DisplacementType;
-        typedef typename ImageType::IndexType IndexType;
-        typedef typename ImageType::SizeType SizeType;
-        typedef typename ImageType::SpacingType SpacingType;
-        typedef itk::LinearInterpolateImageFunction<ImageType> InterpolatorType;
-        typedef typename InterpolatorType::Pointer InterpolatorPointerType;
-        typedef typename InterpolatorType::ContinuousIndexType ContinuousIndexType;
+    typedef	TImage ImageType;
+    typedef typename ImageType::Pointer ImagePointerType;
+    typedef typename ImageType::ConstPointer ConstImagePointerType;
+    typedef typename ImageType::PointType PointType;
 
 
-        typedef typename TransfUtils<ImageType>::DeformationFieldPointerType DisplacementImagePointerType;
-        typedef typename itk::ConstNeighborhoodIterator<ImageType> ImageNeighborhoodIteratorType;
-        typedef typename ImageNeighborhoodIteratorType::RadiusType RadiusType;
+    typedef typename TransfUtils<ImageType>::DisplacementType DisplacementType;
+    typedef typename ImageType::IndexType IndexType;
+    typedef typename ImageType::SizeType SizeType;
+    typedef typename ImageType::SpacingType SpacingType;
+    typedef itk::LinearInterpolateImageFunction<ImageType> InterpolatorType;
+    typedef typename InterpolatorType::Pointer InterpolatorPointerType;
+    typedef typename InterpolatorType::ContinuousIndexType ContinuousIndexType;
 
-        SizeType m_targetSize,m_atlasSize;
-    protected:
-        ConstImagePointerType m_targetImage, m_atlasImage;
-        ConstImagePointerType m_scaledTargetImage, m_scaledAtlasImage,m_atlasMaskImage,m_scaledAtlasMaskImage;
-        InterpolatorPointerType m_atlasInterpolator;
-        DisplacementImagePointerType m_baseDisplacementMap;
-        bool m_haveDisplacementMap;
-        bool radiusSet;
-        RadiusType m_radius, m_scaledRadius;
-        SpacingType m_coarseImageSpacing;
-        ImageNeighborhoodIteratorType nIt;
-        double m_scale;
-        SizeType m_scaleITK,m_invertedScaleITK;
-        double  m_threshold;
-        bool LOGPOTENTIAL;
-        bool m_noOutSidePolicy;
-        bool m_useGradient;
-        double m_alpha;
-        bool m_normalizeImages;
-    public:
-        /** Method for creation through the object factory. */
-        itkNewMacro(Self);
-        /** Standard part of every itk Object. */
-        itkTypeMacro(RegistrationUnaryPotentialNCC, Object);
 
-        UnaryRegistrationPotentialBase(){
-            m_haveDisplacementMap=false;
-            radiusSet=false;
-            m_targetImage=NULL;
-            m_atlasImage=NULL;
-            m_atlasMaskImage=NULL;
-            m_scaledAtlasMaskImage=NULL;
-            m_scale=1.0;
-            m_scaleITK.Fill(1.0);
-            m_threshold=std::numeric_limits<double>::max();
-            LOGPOTENTIAL=false;
-            m_noOutSidePolicy = false;
-            m_useGradient=false;
-            m_alpha=0.0;
-            m_normalizeImages=0.0;
-        }
-        ~UnaryRegistrationPotentialBase(){
-            //delete nIt;
-        }
-        void SetAlpha(double alpha){m_alpha=alpha;}
+    typedef typename TransfUtils<ImageType>::DeformationFieldPointerType DisplacementImagePointerType;
+    typedef typename itk::ConstNeighborhoodIterator<ImageType> ImageNeighborhoodIteratorType;
+    typedef typename ImageNeighborhoodIteratorType::RadiusType RadiusType;
 
-        virtual void Compute(){}
-        virtual void setDisplacements(std::vector<DisplacementType> displacements){}
-        virtual void setCoarseImage(ImagePointerType img){}
-        virtual void setThreshold(double t){m_threshold=t;}
-        virtual void setLogPotential(bool b){LOGPOTENTIAL=b;}
-        virtual void setNoOutsidePolicy(bool b){ m_noOutSidePolicy = b;}
-        virtual void setNormalizeImages(bool b){m_normalizeImages=b;}
-        virtual void Init(){
+    SizeType m_targetSize,m_atlasSize;
+  protected:
+    ConstImagePointerType m_targetImage, m_atlasImage;
+    ConstImagePointerType m_scaledTargetImage, m_scaledAtlasImage,m_atlasMaskImage,m_scaledAtlasMaskImage;
+    InterpolatorPointerType m_atlasInterpolator;
+    DisplacementImagePointerType m_baseDisplacementMap;
+    bool m_haveDisplacementMap;
+    bool radiusSet;
+    RadiusType m_radius, m_scaledRadius;
+    SpacingType m_coarseImageSpacing;
+    ImageNeighborhoodIteratorType nIt;
+    double m_scale;
+    SizeType m_scaleITK,m_invertedScaleITK;
+    double  m_threshold;
+    bool LOGPOTENTIAL;
+    bool m_noOutSidePolicy;
+    bool m_useGradient;
+    double m_alpha;
+    bool m_normalizeImages;
+  public:
+    /** Method for creation through the object factory. */
+    itkNewMacro(Self);
+    /** Standard part of every itk Object. */
+    itkTypeMacro(RegistrationUnaryPotentialNCC, Object);
 
-            assert(m_targetImage);
-            assert(m_atlasImage);
-            if ( m_scale!=1.0){
-                m_scaledTargetImage=FilterUtils<ImageType>::LinearResample(m_targetImage,m_scale,true);
-                m_scaledAtlasImage=FilterUtils<ImageType>::LinearResample(m_atlasImage,m_scale,true);
-                if (m_atlasMaskImage.IsNotNull()){
-                    m_scaledAtlasMaskImage=FilterUtils<ImageType>::NNResample(m_atlasMaskImage,m_scale,false);                }
-            }else{
-                m_scaledTargetImage=m_targetImage;
-                m_scaledAtlasImage=m_atlasImage;
-                m_scaledAtlasMaskImage=m_atlasMaskImage;
-            }
-            if (!radiusSet){
-                LOG<<"Radius must be set before calling registrationUnaryPotential.Init()"<<endl;
-                exit(0);
-            }
-                
-            for (int d=0;d<ImageType::ImageDimension;++d){
-                m_scaledRadius[d]=max(m_scale*m_radius[d]-1,1.0);
-            }
-            LOGV(2)<<"Registration unary patch radius " << m_radius << " scale "<< m_scale << " scaledRadius "<< m_scaledRadius << endl;
-            nIt=ImageNeighborhoodIteratorType(this->m_scaledRadius,this->m_scaledTargetImage, this->m_scaledTargetImage->GetLargestPossibleRegion());
-            m_atlasInterpolator=InterpolatorType::New();
-            m_atlasInterpolator->SetInputImage(m_scaledAtlasImage);
-        }
-        
-        virtual void freeMemory(){
-        }
-        void SetScale(double s){
-            this->m_scale=s;
-            this->m_scaleITK.Fill(s); 
-            this->m_invertedScaleITK.Fill(1.0/s);
-        }
-        void SetRadius(SpacingType sp){
-            m_coarseImageSpacing=sp;
-            double radiusScaling=1;
-            LOGV(2)<<VAR(radiusScaling)<<endl;
-            for (int d=0;d<ImageType::ImageDimension;++d){
-                m_radius[d]=radiusScaling*sp[d]/m_targetImage->GetSpacing()[d];
-            }
-            radiusSet=true;
-        }
-        
-        void SetBaseDisplacementMap(DisplacementImagePointerType blm, double scale=1.0){
-            m_baseDisplacementMap=blm;m_haveDisplacementMap=true;
-            if (blm->GetLargestPossibleRegion().GetSize()!=m_scaledTargetImage->GetLargestPossibleRegion().GetSize()){
-                m_baseDisplacementMap=TransfUtils<ImageType>::bSplineInterpolateDeformationField(blm,m_scaledTargetImage);
-            }
-        }
-        DisplacementImagePointerType GetBaseDisplacementMap(DisplacementImagePointerType blm){return m_baseDisplacementMap;}
-        virtual void SetAtlasImage(ImagePointerType atlasImage){
-            SetAtlasImage(ConstImagePointerType(atlasImage));
-        }
+    UnaryRegistrationPotentialBase(){
+      m_haveDisplacementMap=false;
+      radiusSet=false;
+      m_targetImage=NULL;
+      m_atlasImage=NULL;
+      m_atlasMaskImage=NULL;
+      m_scaledAtlasMaskImage=NULL;
+      m_scale=1.0;
+      m_scaleITK.Fill(1.0);
+      m_threshold=std::numeric_limits<double>::max();
+      LOGPOTENTIAL=false;
+      m_noOutSidePolicy = false;
+      m_useGradient=false;
+      m_alpha=0.0;
+      m_normalizeImages=0.0;
+    }
+    ~UnaryRegistrationPotentialBase(){
+      //delete nIt;
+    }
+    void SetAlpha(double alpha){m_alpha=alpha;}
 
-      virtual void SetAtlasImage(ConstImagePointerType atlasImage){
-            if (! m_useGradient){ 
-                if (m_normalizeImages){
-                    LOGV(1)<<"Normalizing atlas image to zero mean unit variance"<<endl;
-                    m_atlasImage=FilterUtils<ImageType>::normalizeImage(atlasImage);
-                }
-                else
-                    m_atlasImage=atlasImage;
-            }else{
-                if (m_normalizeImages){
-                    LOGV(1)<<"Normalizing atlas gradient image to zero mean unit variance"<<endl;
-                    m_atlasImage=FilterUtils<ImageType>::gradient(FilterUtils<ImageType>::normalizeImage(atlasImage));
-                }
-                else
-                    m_atlasImage=FilterUtils<ImageType>::gradient(atlasImage);
-            }
-            m_atlasSize=m_atlasImage->GetLargestPossibleRegion().GetSize();
-        }
+    virtual void Compute(){}
+    virtual void setDisplacements(std::vector<DisplacementType> displacements){}
+    virtual void setCoarseImage(ImagePointerType img){}
+    virtual void setThreshold(double t){m_threshold=t;}
+    virtual void setLogPotential(bool b){LOGPOTENTIAL=b;}
+    virtual void setNoOutsidePolicy(bool b){ m_noOutSidePolicy = b;}
+    virtual void setNormalizeImages(bool b){m_normalizeImages=b;}
+    virtual void Init(){
 
-        virtual void SetAtlasMaskImage(ConstImagePointerType atlasMaskImage){
-            m_atlasMaskImage=atlasMaskImage;
+      assert(m_targetImage);
+      assert(m_atlasImage);
+      if ( m_scale!=1.0){
+        m_scaledTargetImage=FilterUtils<ImageType>::LinearResample(m_targetImage,m_scale,true);
+        m_scaledAtlasImage=FilterUtils<ImageType>::LinearResample(m_atlasImage,m_scale,true);
+        if (m_atlasMaskImage.IsNotNull()){
+          m_scaledAtlasMaskImage=FilterUtils<ImageType>::NNResample(m_atlasMaskImage,m_scale,false);                }
+      }else{
+        m_scaledTargetImage=m_targetImage;
+        m_scaledAtlasImage=m_atlasImage;
+        m_scaledAtlasMaskImage=m_atlasMaskImage;
+      }
+      if (!radiusSet){
+        LOG<<"Radius must be set before calling registrationUnaryPotential.Init()"<<endl;
+        exit(0);
+      }
 
-        }
-        virtual void SetTargetImage(ConstImagePointerType targetImage){
-            if (! m_useGradient){ 
-                if (m_normalizeImages){
-                    LOGV(1)<<"Normalizing target image to zero mean unit variance"<<endl;
-                    m_targetImage=FilterUtils<ImageType>::normalizeImage(targetImage);
-                }
-                else
-                    m_targetImage=targetImage;
-            }else{
-                if (m_normalizeImages){
-                    LOGV(1)<<"Normalizing target gradient image to zero mean unit variance"<<endl;
-                    m_targetImage=FilterUtils<ImageType>::gradient(FilterUtils<ImageType>::normalizeImage(targetImage));
-                }
-                else
-                    m_targetImage=FilterUtils<ImageType>::gradient(targetImage);
-            }
-            m_targetSize=m_targetImage->GetLargestPossibleRegion().GetSize();
+      for (int d=0;d<ImageType::ImageDimension;++d){
+        m_scaledRadius[d]=max(m_scale*m_radius[d]-1,1.0);
+      }
+      LOGV(2)<<"Registration unary patch radius " << m_radius << " scale "<< m_scale << " scaledRadius "<< m_scaledRadius << endl;
+      nIt=ImageNeighborhoodIteratorType(this->m_scaledRadius,this->m_scaledTargetImage, this->m_scaledTargetImage->GetLargestPossibleRegion());
+      m_atlasInterpolator=InterpolatorType::New();
+      m_atlasInterpolator->SetInputImage(m_scaledAtlasImage);
+    }
 
+    virtual void freeMemory(){
+    }
+    void SetScale(double s){
+      this->m_scale=s;
+      this->m_scaleITK.Fill(s); 
+      this->m_invertedScaleITK.Fill(1.0/s);
+    }
+    void SetRadius(SpacingType sp){
+      m_coarseImageSpacing=sp;
+      double radiusScaling=1;
+      LOGV(2)<<VAR(radiusScaling)<<endl;
+      for (int d=0;d<ImageType::ImageDimension;++d){
+        m_radius[d]=radiusScaling*sp[d]/m_targetImage->GetSpacing()[d];
+      }
+      radiusSet=true;
+    }
+
+    void SetBaseDisplacementMap(DisplacementImagePointerType blm, double scale=1.0){
+      m_baseDisplacementMap=blm;m_haveDisplacementMap=true;
+      if (blm->GetLargestPossibleRegion().GetSize()!=m_scaledTargetImage->GetLargestPossibleRegion().GetSize()){
+        m_baseDisplacementMap=TransfUtils<ImageType>::bSplineInterpolateDeformationField(blm,m_scaledTargetImage);
+      }
+    }
+    DisplacementImagePointerType GetBaseDisplacementMap(DisplacementImagePointerType blm){return m_baseDisplacementMap;}
+    virtual void SetAtlasImage(ImagePointerType atlasImage){
+      SetAtlasImage(ConstImagePointerType(atlasImage));
+    }
+
+    virtual void SetAtlasImage(ConstImagePointerType atlasImage){
+      if (! m_useGradient){ 
+        if (m_normalizeImages){
+          LOGV(1)<<"Normalizing atlas image to zero mean unit variance"<<endl;
+          m_atlasImage=FilterUtils<ImageType>::normalizeImage(atlasImage);
         }
-        ConstImagePointerType GetTargetImage(){
-            return m_scaledTargetImage;
+        else
+          m_atlasImage=atlasImage;
+      }else{
+        if (m_normalizeImages){
+          LOGV(1)<<"Normalizing atlas gradient image to zero mean unit variance"<<endl;
+          m_atlasImage=FilterUtils<ImageType>::gradient(FilterUtils<ImageType>::normalizeImage(atlasImage));
         }
-        ConstImagePointerType GetAtlasImage(){
-            return m_scaledAtlasImage;
+        else
+          m_atlasImage=FilterUtils<ImageType>::gradient(atlasImage);
+      }
+      m_atlasSize=m_atlasImage->GetLargestPossibleRegion().GetSize();
+    }
+
+    virtual void SetAtlasMaskImage(ConstImagePointerType atlasMaskImage){
+      m_atlasMaskImage=atlasMaskImage;
+
+    }
+    virtual void SetTargetImage(ConstImagePointerType targetImage){
+      if (! m_useGradient){ 
+        if (m_normalizeImages){
+          LOGV(1)<<"Normalizing target image to zero mean unit variance"<<endl;
+          m_targetImage=FilterUtils<ImageType>::normalizeImage(targetImage);
         }
-        virtual double getPotential(IndexType targetIndex, DisplacementType disp){
+        else
+          m_targetImage=targetImage;
+      }else{
+        if (m_normalizeImages){
+          LOGV(1)<<"Normalizing target gradient image to zero mean unit variance"<<endl;
+          m_targetImage=FilterUtils<ImageType>::gradient(FilterUtils<ImageType>::normalizeImage(targetImage));
+        }
+        else
+          m_targetImage=FilterUtils<ImageType>::gradient(targetImage);
+      }
+      m_targetSize=m_targetImage->GetLargestPossibleRegion().GetSize();
+
+    }
+    ConstImagePointerType GetTargetImage(){
+      return m_scaledTargetImage;
+    }
+    ConstImagePointerType GetAtlasImage(){
+      return m_scaledAtlasImage;
+    }
+    virtual double getPotential(IndexType targetIndex, DisplacementType disp){
       return 0;
-        }
-       
-    };//class
+    }
 
- 
- /** \brief
-   * This registration potential computes all local potentials for a specific displacement at once and caches them, allowing for greater efficiency
-   */
-    template<class TImage, class TLocalSimilarity>
-    class UnaryRegistrationPotentialWithCaching: public UnaryRegistrationPotentialBase<TImage> {
-    public:
-        //itk declarations
-        typedef UnaryRegistrationPotentialWithCaching            Self;
-        typedef itk::SmartPointer<Self>        Pointer;
-        typedef itk::SmartPointer<const Self>  ConstPointer;
-        typedef UnaryRegistrationPotentialBase<TImage> Superclass;
-
-        typedef	TImage ImageType;
-        typedef typename ImageType::Pointer ImagePointerType;
-        typedef typename ImageType::ConstPointer ConstImagePointerType;
-        static const int D=ImageType::ImageDimension;
-
-        typedef typename TransfUtils<ImageType>::DisplacementType DisplacementType;
-        typedef typename ImageType::IndexType IndexType;
-        typedef typename ImageType::PointType PointType;
-        typedef typename ImageType::PixelType PixelType;
-
-        typedef typename ImageType::SizeType SizeType;
-        typedef typename ImageType::SpacingType SpacingType;
-        typedef itk::LinearInterpolateImageFunction<ImageType> InterpolatorType;
-        typedef typename InterpolatorType::Pointer InterpolatorPointerType;
-        typedef typename InterpolatorType::ContinuousIndexType ContinuousIndexType;
+  };//class
 
 
-        typedef typename TransfUtils<ImageType>::DeformationFieldType DisplacementImageType;
-        typedef typename TransfUtils<ImageType>::DeformationFieldPointerType DisplacementImagePointerType;
+  /** \brief
+  * This registration potential computes all local potentials for a specific displacement at once and caches them, allowing for greater efficiency
+  */
+  template<class TImage, class TLocalSimilarity>
+  class UnaryRegistrationPotentialWithCaching: public UnaryRegistrationPotentialBase<TImage> {
+  public:
+    //itk declarations
+    typedef UnaryRegistrationPotentialWithCaching            Self;
+    typedef itk::SmartPointer<Self>        Pointer;
+    typedef itk::SmartPointer<const Self>  ConstPointer;
+    typedef UnaryRegistrationPotentialBase<TImage> Superclass;
+
+    typedef	TImage ImageType;
+    typedef typename ImageType::Pointer ImagePointerType;
+    typedef typename ImageType::ConstPointer ConstImagePointerType;
+    static const int D=ImageType::ImageDimension;
+
+    typedef typename TransfUtils<ImageType>::DisplacementType DisplacementType;
+    typedef typename ImageType::IndexType IndexType;
+    typedef typename ImageType::PointType PointType;
+    typedef typename ImageType::PixelType PixelType;
+
+    typedef typename ImageType::SizeType SizeType;
+    typedef typename ImageType::SpacingType SpacingType;
+    typedef itk::LinearInterpolateImageFunction<ImageType> InterpolatorType;
+    typedef typename InterpolatorType::Pointer InterpolatorPointerType;
+    typedef typename InterpolatorType::ContinuousIndexType ContinuousIndexType;
+
+
+    typedef typename TransfUtils<ImageType>::DeformationFieldType DisplacementImageType;
+    typedef typename TransfUtils<ImageType>::DeformationFieldPointerType DisplacementImagePointerType;
 
     typedef typename itk::ConstNeighborhoodIterator<ImageType> ImageNeighborhoodIteratorType;
-        typedef typename ImageNeighborhoodIteratorType::RadiusType RadiusType;
-        
-        typedef itk::TranslationTransform<double,ImageType::ImageDimension> TranslationTransformType;
-        typedef typename TranslationTransformType::Pointer TranslationTransformPointerType;
-        typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleImageFilterType;
-        
-        typedef typename ImageUtils<ImageType>::FloatImageType FloatImageType;
-        typedef typename FloatImageType::Pointer FloatImagePointerType;
-        typedef typename itk::ImageRegionIteratorWithIndex<FloatImageType> FloatImageIteratorType;
+    typedef typename ImageNeighborhoodIteratorType::RadiusType RadiusType;
+
+    typedef itk::TranslationTransform<double,ImageType::ImageDimension> TranslationTransformType;
+    typedef typename TranslationTransformType::Pointer TranslationTransformPointerType;
+    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleImageFilterType;
+
+    typedef typename ImageUtils<ImageType>::FloatImageType FloatImageType;
+    typedef typename FloatImageType::Pointer FloatImagePointerType;
+    typedef typename itk::ImageRegionIteratorWithIndex<FloatImageType> FloatImageIteratorType;
     typedef typename itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
     typedef typename itk::ImageRegionConstIterator<ImageType> ImageConstRegionIteratorType;
 
-        typedef  typename itk::PointSet< PixelType, D >   PointSetType;
-        typedef typename  PointSetType::PointsContainer PointsContainerType;
-        typedef typename  PointSetType::PointsContainerPointer PointsContainerPointer;
-        typedef typename  PointSetType::PointsContainerIterator PointsContainerIterator;
-        typedef itk::PointsLocator<PointsContainerType> PointsLocatorType;
-        typedef typename PointsLocatorType::Pointer PointsLocatorPointerType;
+    typedef  typename itk::PointSet< PixelType, D >   PointSetType;
+    typedef typename  PointSetType::PointsContainer PointsContainerType;
+    typedef typename  PointSetType::PointsContainerPointer PointsContainerPointer;
+    typedef typename  PointSetType::PointsContainerIterator PointsContainerIterator;
+    typedef itk::PointsLocator<PointsContainerType> PointsLocatorType;
+    typedef typename PointsLocatorType::Pointer PointsLocatorPointerType;
 
 
-    protected:
+  protected:
 
     std::vector<DisplacementType> m_displacements;
-        std::vector<FloatImagePointerType> m_potentials;
-        DisplacementType m_currentActiveDisplacement;
-        FloatImagePointerType m_currentCachedPotentials;
-        ImagePointerType m_coarseImage,m_deformedAtlasImage,m_deformedMask;
-        double m_averageFixedPotential,m_oldAveragePotential;
-        double m_normalizationFactor;
-        bool m_normalize;
-        PointsContainerPointer m_atlasLandmarks,m_targetLandmarks;
-        FloatImagePointerType m_unaryPotentialWeights;
+    std::vector<FloatImagePointerType> m_potentials;
+    DisplacementType m_currentActiveDisplacement;
+    FloatImagePointerType m_currentCachedPotentials;
+    ImagePointerType m_coarseImage,m_deformedAtlasImage,m_deformedMask;
+    double m_averageFixedPotential,m_oldAveragePotential;
+    double m_normalizationFactor;
+    bool m_normalize;
+    PointsContainerPointer m_atlasLandmarks,m_targetLandmarks;
+    FloatImagePointerType m_unaryPotentialWeights;
 
 
-    private:
-        PointsContainerPointer readLandmarks(string f){
-            if (f==""){
-                return NULL;
-            }
-            
-            typename PointSetType::Pointer  pointSet = PointSetType::New();
+  private:
+    PointsContainerPointer readLandmarks(string f){
+      if (f==""){
+        return NULL;
+      }
 
-            PointsContainerPointer points=pointSet->GetPoints();
-            ifstream ifs(f.c_str());
-            int i=0;
-            while ( ! ifs.eof() ) {
-                PointType point;
-                bool fullPoint=true;
-                for (int d=0;d<D;++d){
-                    ifs>>point[d];
-                    if (ifs.eof()){
-                        fullPoint=false;
-                        break;
-                    }
-                   
-                }
-                if (fullPoint){
-                    points->InsertElement(i, point);
-                    ++i;
-                }
-            } 
-            return points;
-        }
+      typename PointSetType::Pointer  pointSet = PointSetType::New();
 
-
-        PointsContainerPointer readLandmarksWithOrigin(string filename, std::vector<double> extent) {
-          if (filename==""){
-              return NULL;
+      PointsContainerPointer points=pointSet->GetPoints();
+      ifstream ifs(f.c_str());
+      int i=0;
+      while ( ! ifs.eof() ) {
+        PointType point;
+        bool fullPoint=true;
+        for (int d=0;d<D;++d){
+          ifs>>point[d];
+          if (ifs.eof()){
+            fullPoint=false;
+            break;
           }
-          typename PointSetType::Pointer  pointSet = PointSetType::New();
-          PointsContainerPointer points=pointSet->GetPoints();
-          
-          ifstream ifs(filename.c_str());
 
-          //read origin
-          PointType origin;
+        }
+        if (fullPoint){
+          points->InsertElement(i, point);
+          ++i;
+        }
+      } 
+      return points;
+    }
+
+
+    PointsContainerPointer readLandmarksWithOrigin(string filename, std::vector<double> extent) {
+      if (filename==""){
+        return NULL;
+      }
+      typename PointSetType::Pointer  pointSet = PointSetType::New();
+      PointsContainerPointer points=pointSet->GetPoints();
+
+      ifstream ifs(filename.c_str());
+
+      //read origin
+      PointType origin;
+      for (int d=0;d<D;++d) {
+        ifs>>origin[d];
+      }
+
+      int i=0;
+      while ( ! ifs.eof() ) {
+        PointType point;
+        bool fullPoint=true;
+        for (int d=0;d<D;++d){
+          ifs>>point[d];
+          if (ifs.eof()){
+            fullPoint=false;
+            break;
+          }
+
+        }
+        if (fullPoint){
+          //move point by: (Landmark-Origin)-Extent/2
+          point = point - origin;
           for (int d=0;d<D;++d) {
-            ifs>>origin[d];
+            point[d] = point[d] - extent[d]/2;
           }
+          points->InsertElement(i, point);
+          ++i;
+        }
+      } 
+      LOG << "read landmarks from file: " << filename << " with amount of points: " << i << std::endl;
+      return points;
+    }
 
-          int i=0;
-          while ( ! ifs.eof() ) {
-              PointType point;
-              bool fullPoint=true;
-              for (int d=0;d<D;++d){
-                  ifs>>point[d];
-                  if (ifs.eof()){
-                      fullPoint=false;
-                      break;
-                  }
-                   
-              }
-              if (fullPoint){
-                //move point by: (Landmark-Origin)-Extent/2
-                point = point - origin;
-                for (int d=0;d<D;++d) {
-                  point[d] = point[d] - extent[d]/2;
-                }
-                points->InsertElement(i, point);
-                ++i;
-              }
-          } 
-          LOG << "read landmarks from file: " << filename << " with amount of points: " << i << std::endl;
-          return points;
-        }
+  public:
+    /** Method for creation through the object factory. */
+    itkNewMacro(Self);
+    /** Standard part of every itk Object. */
+    itkTypeMacro(FastRegistrationUnaryPotentialNCC, Object);
 
-    public:
-        /** Method for creation through the object factory. */
-        itkNewMacro(Self);
-        /** Standard part of every itk Object. */
-        itkTypeMacro(FastRegistrationUnaryPotentialNCC, Object);
-        
-        UnaryRegistrationPotentialWithCaching():Superclass(){
-            m_normalizationFactor=1.0;
-            m_normalize=false;
-            m_unaryPotentialWeights=NULL;
-            
-        }
-        void SetPotentialWeights(FloatImagePointerType img){m_unaryPotentialWeights=img;}
-        void SetAtlasLandmarks(PointsContainerPointer p){m_atlasLandmarks=p;}
-        void SetTargetLandmarks(PointsContainerPointer p){m_targetLandmarks=p;}
-        void SetAtlasLandmarksFile(string f){
-            SetAtlasLandmarks(readLandmarks(f));
-        }
-        void SetTargetLandmarksFile(string f){
-            SetTargetLandmarks(readLandmarks(f));
-        }
-       
-        void SetAtlasLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType atlasImage){
-          //get atlas extent
-          std::vector<double> extent(D);
-          ImageType::SpacingType spacing = atlasImage->GetSpacing();
-          ImageType::SizeType size = atlasImage->GetLargestPossibleRegion().GetSize();
-          for (int d=0;d<D;++d) {
-            extent[d] = spacing[d] * size[d];
-          }
-          SetAtlasLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
-        }
+    UnaryRegistrationPotentialWithCaching():Superclass(){
+      m_normalizationFactor=1.0;
+      m_normalize=false;
+      m_unaryPotentialWeights=NULL;
 
-        void SetTargetLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType targetImage){
-          //get atlas extent
-          std::vector<double> extent(D);
-          ImageType::SpacingType spacing = targetImage->GetSpacing();
-          ImageType::SizeType size = targetImage->GetLargestPossibleRegion().GetSize();
-          for (int d=0;d<D;++d) {
-            extent[d] = spacing[d] * size[d];
-          }
-          SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
-        }
+    }
+    void SetPotentialWeights(FloatImagePointerType img){m_unaryPotentialWeights=img;}
+    void SetAtlasLandmarks(PointsContainerPointer p){m_atlasLandmarks=p;}
+    void SetTargetLandmarks(PointsContainerPointer p){m_targetLandmarks=p;}
+    void SetAtlasLandmarksFile(string f){
+      SetAtlasLandmarks(readLandmarks(f));
+    }
+    void SetTargetLandmarksFile(string f){
+      SetTargetLandmarks(readLandmarks(f));
+    }
+
+    void SetAtlasLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType atlasImage){
+      //get atlas extent
+      std::vector<double> extent(D);
+      ImageType::SpacingType spacing = atlasImage->GetSpacing();
+      ImageType::SizeType size = atlasImage->GetLargestPossibleRegion().GetSize();
+      for (int d=0;d<D;++d) {
+        extent[d] = spacing[d] * size[d];
+      }
+      SetAtlasLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
+    }
+
+    void SetTargetLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType targetImage){
+      //get atlas extent
+      std::vector<double> extent(D);
+      ImageType::SpacingType spacing = targetImage->GetSpacing();
+      ImageType::SizeType size = targetImage->GetLargestPossibleRegion().GetSize();
+      for (int d=0;d<D;++d) {
+        extent[d] = spacing[d] * size[d];
+      }
+      SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
+    }
 
 
-        void setNormalize(bool b){m_normalize=b;}
-        void resetNormalize(){
-            m_normalize=false;
-            m_normalizationFactor=1.0;
-        }
+    void setNormalize(bool b){m_normalize=b;}
+    void resetNormalize(){
+      m_normalize=false;
+      m_normalizationFactor=1.0;
+    }
 
 #define PREDEF
-        virtual void initCaching(){
+    virtual void initCaching(){
 #ifdef PREDEF
-            m_deformedAtlasImage=TransfUtils<ImageType>::warpImage(this->m_scaledAtlasImage,this->m_baseDisplacementMap);
-            if (this->m_scaledAtlasMaskImage.IsNotNull()){
-                m_deformedMask=TransfUtils<ImageType>::warpImage(this->m_scaledAtlasMaskImage,this->m_baseDisplacementMap);
-            }
+      m_deformedAtlasImage=TransfUtils<ImageType>::warpImage(this->m_scaledAtlasImage,this->m_baseDisplacementMap);
+      if (this->m_scaledAtlasMaskImage.IsNotNull()){
+        m_deformedMask=TransfUtils<ImageType>::warpImage(this->m_scaledAtlasMaskImage,this->m_baseDisplacementMap);
+      }
 #ifdef USE_ROI_MASK
       else{
-                ImagePointerType mask=ImageUtils<ImageType>::createEmpty(this->m_scaledAtlasImage);
-                mask->FillBuffer(1);
-                m_deformedMask=TransfUtils<ImageType>::warpImage(mask,this->m_baseDisplacementMap);
-            }
+        ImagePointerType mask=ImageUtils<ImageType>::createEmpty(this->m_scaledAtlasImage);
+        mask->FillBuffer(1);
+        m_deformedMask=TransfUtils<ImageType>::warpImage(mask,this->m_baseDisplacementMap);
+      }
 #endif
 
 #endif
-        }
+    }
 
     void cachePotentials(DisplacementType displacement){
       LOGV(15) << "Caching registration unary potential for displacement " << displacement << endl;
@@ -510,7 +510,7 @@ namespace SRS{
         displacementFieldInterpolator->SetInputImage(this->m_baseDisplacementMap);
         FloatImageIteratorType potentialIterator(pot, pot->GetLargestPossibleRegion());
 
-      
+
         double radius = 2 * m_coarseImage->GetSpacing()[0];
 
         for (potentialIterator.GoToBegin(); !potentialIterator.IsAtEnd(); ++potentialIterator){
@@ -580,39 +580,39 @@ namespace SRS{
 
     }
 
-        void setDisplacements(std::vector<DisplacementType> displacements){
-            m_displacements=displacements;
-        }
-        void setCoarseImage(ImagePointerType img){m_coarseImage=img;}
+    void setDisplacements(std::vector<DisplacementType> displacements){
+      m_displacements=displacements;
+    }
+    void setCoarseImage(ImagePointerType img){m_coarseImage=img;}
 
-        virtual double getPotential(IndexType coarseIndex, unsigned int displacementDisplacement){
-            //LOG<<"DEPRECATED BEHAVIOUR!"<<endl;
-            return m_potentials[displacementDisplacement]->GetPixel(coarseIndex);
-        }
-        virtual double getPotential(IndexType coarseIndex){
-            //LOG<<"NEW BEHAVIOUR!"<<endl;
-            LOGV(90)<<" "<<VAR(m_currentCachedPotentials->GetLargestPossibleRegion().GetSize())<<endl;
-            return  m_normalizationFactor*m_currentCachedPotentials->GetPixel(coarseIndex);
-        }
-        virtual double getPotential(IndexType coarseIndex, DisplacementType l){
-            LOG<<"ERROR NEVER CALL THIS"<<endl;
-            exit(0);
-        }
+    virtual double getPotential(IndexType coarseIndex, unsigned int displacementDisplacement){
+      //LOG<<"DEPRECATED BEHAVIOUR!"<<endl;
+      return m_potentials[displacementDisplacement]->GetPixel(coarseIndex);
+    }
+    virtual double getPotential(IndexType coarseIndex){
+      //LOG<<"NEW BEHAVIOUR!"<<endl;
+      LOGV(90)<<" "<<VAR(m_currentCachedPotentials->GetLargestPossibleRegion().GetSize())<<endl;
+      return  m_normalizationFactor*m_currentCachedPotentials->GetPixel(coarseIndex);
+    }
+    virtual double getPotential(IndexType coarseIndex, DisplacementType l){
+      LOG<<"ERROR NEVER CALL THIS"<<endl;
+      exit(0);
+    }
 
-        virtual FloatImagePointerType localPotentials(ImagePointerType i1, ImagePointerType i2){
-            return Metrics<ImageType,FloatImageType>::LNCC((ConstImagePointerType)i1,(ConstImagePointerType)i2,i1->GetSpacing()[0]);
-        }
-        virtual FloatImagePointerType localPotentials(ConstImagePointerType i1, ConstImagePointerType i2){
-            return Metrics<ImageType,FloatImageType>::LNCC(i1,i2,i1->GetSpacing()[0]);
-        }
+    virtual FloatImagePointerType localPotentials(ImagePointerType i1, ImagePointerType i2){
+      return Metrics<ImageType,FloatImageType>::LNCC((ConstImagePointerType)i1,(ConstImagePointerType)i2,i1->GetSpacing()[0]);
+    }
+    virtual FloatImagePointerType localPotentials(ConstImagePointerType i1, ConstImagePointerType i2){
+      return Metrics<ImageType,FloatImageType>::LNCC(i1,i2,i1->GetSpacing()[0]);
+    }
 
-        //virtual double getLocalPotential(IndexType targetIndex){
-        inline double getLocalPotential(IndexType targetIndex){
+    //virtual double getLocalPotential(IndexType targetIndex){
+    inline double getLocalPotential(IndexType targetIndex){
       return -1;
-        }
-    
-    };//UnaryRegistrationPotentialWithCaching
-  
-   
+    }
+
+  };//UnaryRegistrationPotentialWithCaching
+
+
 
 }//namespace
