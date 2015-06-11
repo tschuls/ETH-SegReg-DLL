@@ -47,9 +47,9 @@ template<typename ImageType, typename CDisplacementPrecision=float, typename COu
 class TransfUtils {
 
 public:
-	typedef typename ImageType::Pointer  ImagePointerType;
-	typedef typename ImageType::ConstPointer  ConstImagePointerType;
-	typedef typename ImageType::PixelType PixelType;
+  typedef typename ImageType::Pointer  ImagePointerType;
+  typedef typename ImageType::ConstPointer  ConstImagePointerType;
+  typedef typename ImageType::PixelType PixelType;
     typedef typename itk::AffineTransform<double,ImageType::ImageDimension> AffineTransformType;
     //typedef typename itk::Transform<double,ImageType::ImageDimension> AffineTransformType;
     typedef typename AffineTransformType::Pointer AffineTransformPointerType;
@@ -309,9 +309,9 @@ public:
         resampler->SetTransform(affine);
         resampler->SetOutputOrigin(target->GetOrigin());
 
-		resampler->SetOutputSpacing ( target->GetSpacing() );
-		resampler->SetOutputDirection ( target->GetDirection() );
-		resampler->SetSize ( target->GetLargestPossibleRegion().GetSize() );
+    resampler->SetOutputSpacing ( target->GetSpacing() );
+    resampler->SetOutputDirection ( target->GetDirection() );
+    resampler->SetSize ( target->GetLargestPossibleRegion().GetSize() );
         resampler->Update();
         return resampler->GetOutput();
     }
@@ -1854,9 +1854,9 @@ public:
         if (target.IsNull()) target=img;
         resampleFilter->SetInput(target);
         resampleFilter->SetOutputOrigin(target->GetOrigin());
-		resampleFilter->SetOutputSpacing ( target->GetSpacing() );
-		resampleFilter->SetOutputDirection ( target->GetDirection() );
-		resampleFilter->SetSize ( target->GetLargestPossibleRegion().GetSize() );
+    resampleFilter->SetOutputSpacing ( target->GetSpacing() );
+    resampleFilter->SetOutputDirection ( target->GetDirection() );
+    resampleFilter->SetSize ( target->GetLargestPossibleRegion().GetSize() );
         NNInterpolatorPointerType interpol2=NNInterpolatorType::New();
         LinearInterpolatorPointerType interpol=LinearInterpolatorType::New();
         if (NN){
