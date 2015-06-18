@@ -126,8 +126,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   
   //set the correct mask filename (but defined in the SRS Config file to see afterwards if a mask was used or not)
   if (filterConfig->atlasMaskFilename!="") {
-    LOG<<"Mask Image: " + atlasDir + "\\iMask.vtk"<<std::endl;
-    filterConfig->atlasMaskFilename = atlasDir + "\\iMask.vtk";
+    filterConfig->atlasMaskFilename = atlasDir + "\\" + filterConfig->atlasMaskFilename;
+    LOG<<"Mask Image: " + filterConfig->atlasMaskFilename <<std::endl;
   } else {
     LOG<<"NO MASK IMAGE"<<std::endl;
   }
