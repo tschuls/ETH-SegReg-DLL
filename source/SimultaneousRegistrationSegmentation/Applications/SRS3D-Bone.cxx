@@ -96,12 +96,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   realProgressCallbackFunc(progress);
 
 
-  std::ofstream out("C:\\Users\\jstrasse\\Desktop\\out.txt");
-  std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-  std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
-
-  
-
   SRSConfig::Pointer filterConfig = SRSConfig::New();
   filterConfig->parseFile("C:\\_SmartSeg\\srsConfigs.txt");
 
@@ -115,8 +109,16 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   wstring secondString(optionalArguments[3]);
   string targetDir(secondString.begin(), secondString.end());
 
-  //string atlasDir = "C:\\_Patients\\patientRomExpertCaseCut\\ECI053801";
-  //string targetDir = "C:\\_Patients\\patientRomExpertCaseCut\\ECI054005";
+  wstring thirdString(optionalArguments[5]);
+  string protocolDir(thirdString.begin(), thirdString.end());
+
+  std::string atlasName = atlasDir.substr(atlasDir.length()-9,9); 
+  std::string tagetName = targetDir.substr(targetDir.length()-9,9); 
+  std::string protocolFile = protocolDir + "\\SRS_" + atlasName + "_" + tagetName + ".txt";
+  std::ofstream out(protocolFile);
+  std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+  std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
 
   LOG<<"ATLAS DIR: " + atlasDir<<std::endl;
   LOG<<"TARGET DIR: " + targetDir<<std::endl;
