@@ -119,12 +119,10 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
   std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
 
-
-  LOG<<"ATLAS DIR: " + atlasDir<<std::endl;
-  LOG<<"TARGET DIR: " + targetDir<<std::endl;
-
   filterConfig->atlasLandmarkFilename = atlasDir + "\\landmarks.txt";
   filterConfig->targetLandmarkFilename = targetDir + "\\landmarks.txt";
+
+  LOG<< " target landmark filename: " << filterConfig->targetLandmarkFilename << std::endl;
   
   //set the correct mask filename (but defined in the SRS Config file to see afterwards if a mask was used or not)
   if (filterConfig->atlasMaskFilename!="") {
@@ -133,8 +131,6 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   } else {
     LOG<<"NO MASK IMAGE"<<std::endl;
   }
-
-
 
 
   if (filterConfig->logFileName!=""){
@@ -215,6 +211,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   targetSize[0]  = targetSizeX;  // size along X
   targetSize[1]  = targetSizeY;  // size along Y
   targetSize[2]  = targetSizeZ;  // size along Z
+  LOG<< "target size x: " << targetSize[0] <<std::endl;
+  LOG<< "target size y: " << targetSize[1] <<std::endl;
+  LOG<< "target size z: " << targetSize[2] <<std::endl;
+
+  LOG<< "voi origin x" << voiOriginX << std::endl;
+  LOG<< "voi origin y" << voiOriginY << std::endl;
+  LOG<< "voi origin z" << voiOriginZ << std::endl;
 
   ImageType::IndexType start;
   start[0] =   0;  // first index on X
@@ -234,11 +237,16 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   targetSpacing[2] = targetResZ;
   targetImage ->SetSpacing(targetSpacing);
 
+  LOG<< "target res x: " << targetSpacing[0] <<std::endl;
+  LOG<< "target res y: " << targetSpacing[1] <<std::endl;
+  LOG<< "target res z: " << targetSpacing[2] <<std::endl;
+
   double targetOrigin[3];
   for (int d = 0; d<3; ++d){
     targetOrigin[d] = -0.5*targetSpacing[d] * targetSize[d];
   }
   targetImage ->SetOrigin(targetOrigin);
+  LOG<< "target origin: " << targetOrigin[0] << " " << targetOrigin[1] << " " << targetOrigin[2] <<std::endl;
 
 
   itk::ImageRegionIteratorWithIndex<ImageType> targetIterator(targetImage,targetImage->GetLargestPossibleRegion());
