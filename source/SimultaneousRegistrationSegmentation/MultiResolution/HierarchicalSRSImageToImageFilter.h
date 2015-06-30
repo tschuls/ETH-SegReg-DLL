@@ -770,8 +770,17 @@ namespace SRS{
                         LOGV(6)<<VAR(segmentation->GetLargestPossibleRegion().GetSize())<<std::endl;
                         segmentation = FilterUtils<ImageType>::BSplineResampleSegmentation(segmentation,m_targetImage);
                     }
-                 
+
                     if (m_config->verbose>6){
+                        //check distance of landmarks
+                        typedef  typename itk::PointSet< PixelType, D >   PointSetType;
+                        typedef typename  PointSetType::PointsContainer PointsContainerType;
+                        typedef typename  PointSetType::PointsContainerPointer PointsContainerPointer;
+                        typedef typename  PointSetType::PointsContainerIterator PointsContainerIterator;
+                        PointsContainerPointer intermediateLandmarks = LandmarkUtils<ImageType,PointsContainerType>::transform(m_unaryRegistrationPot->GetOriginalTargetLandmarks(), composedDeformation);
+                    
+                        LandmarkUtils<ImageType,PointsContainerType>::logTRE(intermediateLandmarks, m_unaryRegistrationPot->GetOriginalAtlasLandmarks());
+
                         DeformationFieldPointerType lowResDef;
                         if (!pixelGrid){
                             if (bSpline)

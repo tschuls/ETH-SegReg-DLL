@@ -19,6 +19,7 @@
 #include <itkVectorResampleImageFilter.h>
 #include "itkTranslationTransform.h"
 #include "TransformationUtils.h"
+#include "LandmarkUtils.h"
 #include "Log.h"
 #include <limits>
 #include "itkNormalizedMutualInformationHistogramImageToImageMetric.h"
@@ -294,7 +295,7 @@ namespace SRS{
     double m_averageFixedPotential,m_oldAveragePotential;
     double m_normalizationFactor;
     bool m_normalize;
-    PointsContainerPointer m_atlasLandmarks,m_targetLandmarks;
+    PointsContainerPointer m_atlasLandmarks,m_targetLandmarks, m_deformedTargetLandmarks;
     FloatImagePointerType m_unaryPotentialWeights;
 
 
@@ -414,6 +415,14 @@ namespace SRS{
       SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
     }
 
+    PointsContainerPointer GetOriginalAtlasLandmarks() {
+      return m_atlasLandmarks;
+    }
+
+    PointsContainerPointer GetOriginalTargetLandmarks() {
+      return m_targetLandmarks;
+    }
+
 
     void setNormalize(bool b){m_normalize=b;}
     void resetNormalize(){
@@ -428,6 +437,8 @@ namespace SRS{
       if (this->m_scaledAtlasMaskImage.IsNotNull()){
         m_deformedMask=TransfUtils<ImageType>::warpImage(this->m_scaledAtlasMaskImage,this->m_baseDisplacementMap);
       }
+      //deform landmarks in the same way!
+      m_deformedTargetLandmarks = LandmarkUtils<ImageType,PointsContainerType>::transform(this->m_targetLandmarks,this->m_baseDisplacementMap);
 #ifdef USE_ROI_MASK
       else{
         ImagePointerType mask=ImageUtils<ImageType>::createEmpty(this->m_scaledAtlasImage);
