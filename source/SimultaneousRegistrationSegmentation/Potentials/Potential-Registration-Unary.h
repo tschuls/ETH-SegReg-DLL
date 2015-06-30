@@ -511,8 +511,9 @@ namespace SRS{
         FloatImageIteratorType potentialIterator(pot, pot->GetLargestPossibleRegion());
 
 
-        double radius = 2 * m_coarseImage->GetSpacing()[0];
 
+
+        double radius = m_coarseImage->GetSpacing()[0];
         for (potentialIterator.GoToBegin(); !potentialIterator.IsAtEnd(); ++potentialIterator){
 
           //get original potential
