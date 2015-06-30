@@ -583,21 +583,32 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     }  
   }
 
-  *fieldResX = targetResX;
-  *fieldResY = targetResY;
-  *fieldResZ = targetResZ;
+	*fieldResX = targetResX;
+	*fieldResY = targetResY;
+	*fieldResZ = targetResZ;
+  LOG << "fieldResX " << *fieldResX << std::endl;
+  LOG << "fieldResY " << *fieldResY << std::endl;
+  LOG << "fieldResZ " << *fieldResZ << std::endl;
 
+  ImageType::SizeType resultSize = finalDeformation->GetLargestPossibleRegion().GetSize();
+  *fieldSizeX = resultSize[0];
+  *fieldSizeY = resultSize[1];
+  *fieldSizeZ = resultSize[2];
+  LOG << "fieldSizeX " << *fieldSizeX << std::endl;
+  LOG << "fieldSizeY " << *fieldSizeY << std::endl;
+  LOG << "fieldSizeZ " << *fieldSizeZ << std::endl;
 
-  *fieldSizeX = targetSizeX;
-  *fieldSizeY = targetSizeY;
-  *fieldSizeZ = targetSizeZ;
   *fieldOriginX = voiOriginX;
   *fieldOriginY = voiOriginY;
   *fieldOriginZ = voiOriginZ;
+  LOG << "fieldOriginX " << *fieldOriginX << std::endl;
+  LOG << "fieldOriginY " << *fieldOriginY << std::endl;
+  LOG << "fieldOriginZ " << *fieldOriginZ << std::endl;
+
   *fieldVectors = new float[*fieldSizeX * *fieldSizeY * *fieldSizeZ * 3];
 
-  LOG<<"before vector field writing"<<endl;
   DeformationFieldType::IndexType vectorIndex;
+  int offsetStart = 0;
   for (int zt = 0; zt < *fieldSizeZ; zt++) {
     for (int yt = 0; yt < *fieldSizeY; yt++) {
       for (int xt = 0; xt < *fieldSizeX; xt++) {
@@ -605,13 +616,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
         vectorIndex[1] = yt;
         vectorIndex[2] = zt;
         DisplacementType a = finalDeformation->GetPixel(vectorIndex);
-        (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 0] = a[0];
-        (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 1] = a[1];
-        (*fieldVectors)[zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3 + 2] = a[2];
+        offsetStart = zt * *fieldSizeY * *fieldSizeX * 3 + yt * *fieldSizeX * 3 + xt * 3;
+        (*fieldVectors)[offsetStart + 0] = a[0];
+        (*fieldVectors)[offsetStart + 1] = a[1];
+        (*fieldVectors)[offsetStart + 2] = a[2];
       }
     }
   }
-  LOG<<"after vector field writing"<<endl;
   progress = 99;
   realProgressCallbackFunc(progress);
 
