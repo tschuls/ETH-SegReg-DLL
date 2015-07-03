@@ -252,6 +252,40 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     targetIterator.Set(targetPixels[offset++]);
   }
 
+  //************************************************************************************************************//
+  //******************************VOI cropping *****************************************************************//
+  //************************************************************************************************************//
+#define USE_VOI
+#ifdef USE_VOI
+  //crop image to ROI
+  itk::ResampleImageFilter<ImageType, ImageType>::Pointer resampleFilter = itk::ResampleImageFilter<ImageType, ImageType>::New();
+  typedef itk::ResampleImageFilter<ImageType, ImageType>::PointType PointType;
+  resampleFilter->SetInput(targetImage);
+  //convert MIRS origin to ITK origin
+  //MIRS origin is relative position compared to the 'center' of the region of the target image, ITK is 'top left' corner
+  PointType voiExtent; voiExtent[0] = voiExtentX; voiExtent[1] = voiExtentY; voiExtent[2] = voiExtentZ;
+  PointType voiOrigin; voiOrigin[0] = voiOriginX; voiOrigin[1] = voiOriginY; voiOrigin[2] = voiOriginZ;
+  for (int d = 0; d<3; ++d)
+  {
+    voiOrigin[d] = voiOrigin[d] - 0.5*voiExtent[d]; 
+  }
+       
+  LOGV(1) << VAR(voiOriginX) << " " << VAR(voiOriginY) << " " << VAR(voiOriginZ) << std::endl; 
+  LOGV(1) << VAR(voiExtentX) << " " << VAR(voiExtentY) << " " << VAR(voiExtentZ) << std::endl;
+  ImageType::SizeType voiSize;
+
+  for (int d = 0; d<3; ++d) { voiSize[d] = voiExtent[d] / targetSpacing[d]; }
+  LOG << "voiOrigin " << voiOrigin << " voiExtent: " << voiExtent << " " << voiExtentX << std::endl;
+  resampleFilter->SetOutputOrigin(voiOrigin);
+  resampleFilter->SetOutputDirection(targetImage->GetDirection());
+  resampleFilter->SetOutputSpacing(targetImage->GetSpacing());
+
+  resampleFilter->SetSize(voiSize);
+  resampleFilter->Update();
+  targetImage = resampleFilter->GetOutput();
+#endif
+
+  LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_targetImageAfterCut.nii", targetImage));
 
 
   //write image as a test
