@@ -358,16 +358,16 @@ namespace SRS{
 
         }
         if (fullPoint){
-          //move point by: (Landmark-Origin)-Extent/2
-          point = point - origin;
+          //move point by difference of original origin and MIRS origin
           for (int d=0;d<D;++d) {
-            point[d] = point[d] - extent[d]/2;
+            point[d] = point[d] - (origin[d] - (-extent[d]/2));
           }
+          LOGV(6) << "final point: " << point << std::endl;
           points->InsertElement(i, point);
           ++i;
         }
       } 
-      LOG << "read landmarks from file: " << filename << " with amount of points: " << i << std::endl;
+      LOGV(6) << "read landmarks from file: " << filename << " with amount of points: " << i << std::endl;
       return points;
     }
 
@@ -395,24 +395,21 @@ namespace SRS{
 
     void SetAtlasLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType atlasImage){
       //get atlas extent
+      LOG << "set atlas landmarks " << std::endl;
       std::vector<double> extent(D);
       ImageType::SpacingType spacing = atlasImage->GetSpacing();
       ImageType::SizeType size = atlasImage->GetLargestPossibleRegion().GetSize();
       for (int d=0;d<D;++d) {
+        //LOG << "spacing[d]: " << spacing[d] << std::endl;
+        //LOG << "size[d]: " << size[d] << std::endl;
         extent[d] = spacing[d] * size[d];
       }
+      //LOG << "set atlas landmarks with extent" << extent[0] << " " << extent[1] << " "  << extent[2] << std::endl;
       SetAtlasLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
     }
 
-    void SetTargetLandmarksFileWithOrigin(string landmarkFilename, ConstImagePointerType targetImage){
-      //get atlas extent
-      std::vector<double> extent(D);
-      ImageType::SpacingType spacing = targetImage->GetSpacing();
-      ImageType::SizeType size = targetImage->GetLargestPossibleRegion().GetSize();
-      for (int d=0;d<D;++d) {
-        extent[d] = spacing[d] * size[d];
-      }
-      SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, extent));
+    void SetTargetLandmarksFileWithOrigin(string landmarkFilename, std::vector<double> originalExtent){
+      SetTargetLandmarks(readLandmarksWithOrigin(landmarkFilename, originalExtent));
     }
 
     PointsContainerPointer GetOriginalAtlasLandmarks() {
@@ -515,14 +512,7 @@ namespace SRS{
       int c = 0;
       //compute landmark similarity if landmarks are present and weight is not zero
       if (this->m_alpha > 0.0 && m_atlasLandmarks.IsNotNull() && m_targetLandmarks.IsNotNull()){
-        typedef typename itk::VectorLinearInterpolateImageFunction<DisplacementImageType, double> DisplacementInterpolatorType;
-        typedef typename DisplacementInterpolatorType::Pointer DisplacementInterpolatorPointerType;
-        DisplacementInterpolatorPointerType displacementFieldInterpolator = DisplacementInterpolatorType::New();
-        displacementFieldInterpolator->SetInputImage(this->m_baseDisplacementMap);
         FloatImageIteratorType potentialIterator(pot, pot->GetLargestPossibleRegion());
-
-
-
 
         double radius = m_coarseImage->GetSpacing()[0];
         for (potentialIterator.GoToBegin(); !potentialIterator.IsAtEnd(); ++potentialIterator){
@@ -542,9 +532,10 @@ namespace SRS{
           //compute similarity
           for (int n = 0; n < neighborhood.size(); ++n){
             int ptI = neighborhood[n];
-            PointType targetPoint = m_targetLandmarks->GetElement(ptI);
+            PointType deformedTargetPoint = m_deformedTargetLandmarks->GetElement(ptI);
+            PointType originalTargetPoint = m_targetLandmarks->GetElement(ptI);
             PointType atlasPoint = m_atlasLandmarks->GetElement(ptI);
-            LOGV(10) << VAR(point) << " " << VAR(targetPoint) << endl;
+            LOGV(10) << VAR(point) << " " << VAR(originalTargetPoint) << endl;
             //compute linear weight based on distance between grid point and target point
             double w = 1.0;
 #ifdef LINEARWEIGHT
@@ -553,17 +544,25 @@ namespace SRS{
               w *= axisWeight;
             }
 #else
-            w = exp(-(targetPoint - point).GetNorm() / radius);
+            //w = exp(-(targetPoint - point).GetNorm() / radius);
+            for (int d = 0; d < D; ++d){
+              if (fabs(originalTargetPoint[d] - point[d]) > radius) {
+                LOG << "WRONG NEIGHBOR" << std::endl;
+              }
+              double axisWeight = max(0.0, 1.0 - fabs(originalTargetPoint[d] - point[d]) / radius);
+              w *= axisWeight;
+            }
 #endif
-            //get displacement at targetPoint
-            DisplacementType displacement = displacementFieldInterpolator->Evaluate(targetPoint);
             //get error
             DisplacementType newVector;
             for (int i2 = 0; i2 < D; i2++) {
-              newVector[i2] = targetPoint[i2] + displacement[i2] - atlasPoint[i2];
+              newVector[i2] = deformedTargetPoint[i2] + displacement[i2] - atlasPoint[i2];
             }
-            double error = newVector.GetNorm();
-            localPotential += (this->m_alpha)*w*5.0*(error);
+            double error = newVector.GetSquaredNorm();
+            LOGV(4) << "error: " << error << endl;
+            double change = (this->m_alpha)*w*8.0*(error);
+            LOGV(4) << "local potential was: " << localPotential << " change: + " << change << endl;
+            localPotential += change;
 
           }
 

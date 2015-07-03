@@ -154,6 +154,7 @@ namespace SRS{
         PairwiseRegistrationPotentialPointerType m_pairwiseRegistrationPot;
         PairwiseCoherencePotentialPointerType m_pairwiseCoherencePot;
         double lastEnergy;
+        std::vector<double> m_originalTargetExtent;
     public:
         HierarchicalSRSImageToImageFilter(){
             this->SetNumberOfRequiredInputs(5);
@@ -192,6 +193,11 @@ namespace SRS{
         void setTargetAnatomyPrior(ImagePointerType img){
             this->SetNthInput(5,img);
         }
+
+        void setOriginalTargetExtent(std::vector<double> targetExtent) {
+            m_originalTargetExtent = targetExtent;
+        }
+
         void setBulkTransform(DeformationFieldPointerType transf){
             m_bulkTransform=transf;
             m_useBulkTransform=transf.IsNotNull();
@@ -252,7 +258,7 @@ namespace SRS{
                 m_unaryRegistrationPot->setLogPotential(m_config->log_UnaryReg);
                 m_unaryRegistrationPot->setNoOutsidePolicy(m_config->penalizeOutside);
                 m_unaryRegistrationPot->SetAtlasLandmarksFileWithOrigin(m_config->atlasLandmarkFilename, m_atlasImage);
-                m_unaryRegistrationPot->SetTargetLandmarksFileWithOrigin(m_config->targetLandmarkFilename, m_targetImage);
+                m_unaryRegistrationPot->SetTargetLandmarksFileWithOrigin(m_config->targetLandmarkFilename, m_originalTargetExtent);
                 m_unaryRegistrationPot->setNormalizeImages(m_config->normalizeImages);
                 //MOVED HERE, HOPE THIS DOES NOT BREAK ANYTHING
                 m_unaryRegistrationPot->SetTargetImage(m_targetImage);
@@ -261,8 +267,8 @@ namespace SRS{
                 m_pairwiseRegistrationPot->setThreshold(m_config->thresh_PairwiseReg);
                 m_pairwiseRegistrationPot->setFullRegularization(m_config->fullRegPairwise);
                 
-
-                
+                LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_targetImageAfterSettingLandmarks.nii",m_targetImage));
+                LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasImageAfterSettingLandmarks.nii",m_atlasImage)); 
             }
             if (segment){
 

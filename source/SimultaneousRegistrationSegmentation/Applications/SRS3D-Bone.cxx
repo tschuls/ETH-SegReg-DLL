@@ -252,6 +252,17 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     targetIterator.Set(targetPixels[offset++]);
   }
 
+  LOGI(6,ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_targetImageBeforeCut.nii", targetImage));
+
+  //set original extent to know afterwards where the landmarks are
+  std::vector<double> originalTargetExtent(D);
+  ImageType::SpacingType originalSpacing = targetImage->GetSpacing();
+  ImageType::SizeType originalSize = targetImage->GetLargestPossibleRegion().GetSize();
+  for (int d=0;d<D;++d) {
+    originalTargetExtent[d] = originalSpacing[d] * originalSize[d];
+  }
+
+
   //************************************************************************************************************//
   //******************************VOI cropping *****************************************************************//
   //************************************************************************************************************//
@@ -523,6 +534,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   if (filterConfig->useTargetAnatomyPrior){
     filter->setTargetAnatomyPrior(targetAnatomyPrior);
   }
+  filter->setOriginalTargetExtent(originalTargetExtent);
   logSetStage("Bulk transforms");
 
   if (filterConfig->affineBulkTransform!=""){
