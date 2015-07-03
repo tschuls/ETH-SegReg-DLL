@@ -91,11 +91,11 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   const bool WRITE_IMAGES_OUT = false;
   // re-route the progress callback
   realProgressCallbackFunc = progressCallbackFunc;
-  //get config file for SRS params
+
   int progress = 0;
   realProgressCallbackFunc(progress);
 
-
+  //get config file for SRS params
   SRSConfig::Pointer filterConfig = SRSConfig::New();
   filterConfig->parseFile("C:\\_SmartSeg\\srsConfigs.txt");
 
@@ -397,25 +397,17 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   affine->SetTranslation(translation);
   affine->SetMatrix(matrix);
 
+  LOGV(1) << "affine transformation:" << std::endl;
   LOGV(1) << VAR(affine) << std::endl;
   DeformationFieldPointerType transf = TransfUtils<ImageType>::affineToDisplacementField(affine, targetImage);
-  //ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasImageAfterTransform.nii", TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)atlasImage,transf));
-
-
-  //LOGV(8, ImageUtils<ImageType>::writeImage("def2.nii", TransfUtils<ImageType>::warpImage((ImageType::ConstPointer)originalAtlasImage, transf)));
   filter->setBulkTransform(transf);
 
+  if (filterConfig->verbose>5) {
+      ImagePointerType deformedAtlasAffine = TransfUtils<ImageType>::affineDeformImage(atlasImage, affine, targetImage);
+	    ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasDeformedRigid.nii", deformedAtlasAffine);
+	    ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasUnDeformedRigid.nii", atlasImage);
+  }
 
-
-
-  //if (filterConfig.atlasFilename!="") {
-  //  atlasImage=ImageUtils<ImageType>::readImage(filterConfig.atlasFilename);
-  //  #if 0
-  //    if (filterConfig.normalizeImages){
-  //      atlasImage=FilterUtils<ImageType>::normalizeImage(atlasImage);
-  //    }
-  //  #endif
-  //}
   if (!atlasImage) {
     LOG<<"Warning: no atlas image loaded!"<<endl;
     LOG<<"Loading atlas segmentation image :"<<filterConfig->atlasSegmentationFilename<<std::endl;
