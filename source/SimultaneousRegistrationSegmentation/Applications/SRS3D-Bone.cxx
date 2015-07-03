@@ -91,7 +91,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   const bool WRITE_IMAGES_OUT = false;
   // re-route the progress callback
   realProgressCallbackFunc = progressCallbackFunc;
-
+  //get config file for SRS params
   int progress = 0;
   realProgressCallbackFunc(progress);
 
@@ -112,6 +112,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   wstring thirdString(optionalArguments[5]);
   string protocolDir(thirdString.begin(), thirdString.end());
 
+  //re-route standard output to protocol file
   std::string atlasName = atlasDir.substr(atlasDir.length()-9,9); 
   std::string tagetName = targetDir.substr(targetDir.length()-9,9); 
   std::string protocolFile = protocolDir + "\\SRS_" + atlasName + "_" + tagetName + ".txt";
@@ -203,21 +204,19 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
   logUpdateStage("IO");
   logSetVerbosity(filterConfig->verbose);
-  //LOG<<"Loading target image :"<<filterConfig.targetFilename<<std::endl;
-  //ImagePointerType targetImage=ImageUtils<ImageType>::readImage(filterConfig.targetFilename);
+  //************************************************************************************************************//
+  //******************************Target image *****************************************************************//
+  //************************************************************************************************************//
   ImageType::Pointer targetImage = ImageType::New();
 
   ImageType::SizeType  targetSize;
   targetSize[0]  = targetSizeX;  // size along X
   targetSize[1]  = targetSizeY;  // size along Y
   targetSize[2]  = targetSizeZ;  // size along Z
-  LOG<< "target size x: " << targetSize[0] <<std::endl;
-  LOG<< "target size y: " << targetSize[1] <<std::endl;
-  LOG<< "target size z: " << targetSize[2] <<std::endl;
 
-  LOG<< "voi origin x" << voiOriginX << std::endl;
-  LOG<< "voi origin y" << voiOriginY << std::endl;
-  LOG<< "voi origin z" << voiOriginZ << std::endl;
+  LOGV(6) << "target size x: " << targetSize[0] <<std::endl;
+  LOGV(6) << "target size y: " << targetSize[1] <<std::endl;
+  LOGV(6) << "target size z: " << targetSize[2] <<std::endl;
 
   ImageType::IndexType start;
   start[0] =   0;  // first index on X
@@ -237,17 +236,15 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   targetSpacing[2] = targetResZ;
   targetImage ->SetSpacing(targetSpacing);
 
-  LOG<< "target res x: " << targetSpacing[0] <<std::endl;
-  LOG<< "target res y: " << targetSpacing[1] <<std::endl;
-  LOG<< "target res z: " << targetSpacing[2] <<std::endl;
+  LOGV(6) << "target res x: " << targetSpacing[0] <<std::endl;
+  LOGV(6) << "target res y: " << targetSpacing[1] <<std::endl;
+  LOGV(6) << "target res z: " << targetSpacing[2] <<std::endl;
 
   double targetOrigin[3];
   for (int d = 0; d<3; ++d){
     targetOrigin[d] = -0.5*targetSpacing[d] * targetSize[d];
   }
   targetImage ->SetOrigin(targetOrigin);
-  LOG<< "target origin: " << targetOrigin[0] << " " << targetOrigin[1] << " " << targetOrigin[2] <<std::endl;
-
 
   itk::ImageRegionIteratorWithIndex<ImageType> targetIterator(targetImage,targetImage->GetLargestPossibleRegion());
   int offset = 0;
