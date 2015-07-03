@@ -365,6 +365,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   for (sourceIterator.GoToBegin();!sourceIterator.IsAtEnd();++sourceIterator){
     sourceIterator.Set(sourcePixels[offset++]);
   }
+
+  ImagePointerType originalAtlasImage= ImageUtils<ImageType>::duplicate(atlasImage);
+
+
+  //************************************************************************************************************//
+  //************************************************************************************************************//
+
   typedef itk::AffineTransform<double,3> AffineTransformType;
   AffineTransformType::Pointer affine = AffineTransformType::New();
   AffineTransformType::MatrixType matrix;
