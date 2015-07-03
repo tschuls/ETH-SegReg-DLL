@@ -479,8 +479,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   }
   logResetStage;
 
-  ImagePointerType originalTargetImage = ImageUtils<ImageType>::duplicate( targetImage);
-  ImagePointerType originalAtlasImage= ImageUtils<ImageType>::duplicate(atlasImage);
+
   ImagePointerType originalAtlasSegmentation=atlasSegmentation;
   //preprocessing 3: downscaling
 
