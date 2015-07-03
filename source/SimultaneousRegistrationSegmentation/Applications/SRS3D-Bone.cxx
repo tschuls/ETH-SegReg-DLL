@@ -370,6 +370,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
 
   //************************************************************************************************************//
+  //******************************Rigid transformation *********************************************************//
   //************************************************************************************************************//
 
   typedef itk::AffineTransform<double,3> AffineTransformType;
@@ -419,7 +420,13 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   }
 
   ImagePointerType atlasMaskImage=NULL;
-  if (filterConfig->atlasMaskFilename!="") atlasMaskImage=ImageUtils<ImageType>::readImage(filterConfig->atlasMaskFilename);
+  if (filterConfig->atlasMaskFilename!="") {
+    atlasMaskImage=ImageUtils<ImageType>::readImage(filterConfig->atlasMaskFilename);
+    LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_maskBeforeTransform.nii",atlasMaskImage));
+    atlasMaskImage->SetOrigin(atlasImage->GetOrigin());
+    LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_maskAfterTransform.nii",atlasMaskImage));
+  }
+
 
   logResetStage;
   logSetStage("Preprocessing");
