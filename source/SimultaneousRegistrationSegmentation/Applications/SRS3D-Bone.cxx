@@ -365,7 +365,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   for (sourceIterator.GoToBegin();!sourceIterator.IsAtEnd();++sourceIterator){
     sourceIterator.Set(sourcePixels[offset++]);
   }
-
+  LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
   LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
   //write image as a test
   //typedef  itk::ImageFileWriter< ImageType > WriterType;
