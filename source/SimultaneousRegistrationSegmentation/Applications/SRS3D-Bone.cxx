@@ -288,14 +288,30 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_targetImageAfterCut.nii", targetImage));
 
 
-  //write image as a test
-  //typedef  itk::ImageFileWriter< ImageType > WriterType;
-  //WriterType::Pointer writer = WriterType::New();
-  //std::string seriesFormat("C:\\Users\\jstrasse\\Desktop");
-  //seriesFormat = seriesFormat + "\\" + "target.nii.gz";
-  //writer->SetFileName(seriesFormat);
-  //writer->SetInput(targetImage);
-  //writer->Update();
+  //************************************************************************************************************//
+  //******************************Resampling of target image****************************************************//
+  //************************************************************************************************************//
+  
+  //needs to duplicate original image before resampling, since the deformation field is interpolated this resolution
+  ImagePointerType originalTargetImage = ImageUtils<ImageType>::duplicate( targetImage);
+
+  //Resample target Image
+  LOGI(6,ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_VOIbeforeResampling.nii", targetImage));
+  targetImage = FilterUtils<ImageType>::ConstantResample(targetImage);
+  LOGI(6,ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_VOIafterResampling.nii", targetImage));
+
+  if (filterConfig->verbose>5) {
+    ImageType::SpacingType newTargetSpacing = targetImage->GetSpacing();
+    LOG << "target spacing after resample x: " << newTargetSpacing[0] <<std::endl;
+    LOG << "target spacing after resample y: " << newTargetSpacing[1] <<std::endl;
+    LOG << "target spacing after resample z: " << newTargetSpacing[2] <<std::endl;
+
+    ImageType::SizeType newTargetSize = targetImage->GetLargestPossibleRegion().GetSize();
+    LOG << "target size after resample x: " << newTargetSize[0] <<std::endl;
+    LOG << "target size after resample y: " << newTargetSize[1] <<std::endl;
+    LOG << "target size after resample z: " << newTargetSize[2] <<std::endl;
+  }
+
 
 
 #if 0
