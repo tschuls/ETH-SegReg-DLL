@@ -312,16 +312,16 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     LOG << "target size after resample z: " << newTargetSize[2] <<std::endl;
   }
 
-
+  if (!targetImage) {LOG<<"failed!"<<endl; exit(0);}
 
 #if 0
   if (filterConfig->normalizeImages){
     targetImage=FilterUtils<ImageType>::normalizeImage(targetImage);
   }
 #endif
-
-  if (!targetImage) {LOG<<"failed!"<<endl; exit(0);}
-
+  //************************************************************************************************************//
+  //******************************Atlas image *****************************************************************//
+  //************************************************************************************************************//
 
   ImagePointerType atlasImage = ImageType::New();
 
@@ -329,6 +329,10 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   size[0]  = sourceSizeX;  // size along X
   size[1]  = sourceSizeY;  // size along Y
   size[2]  = sourceSizeZ;  // size along Z
+
+  LOGV(6) << "source size x: " << size[0] <<std::endl;
+  LOGV(6) << "source size y: " << size[1] <<std::endl;
+  LOGV(6) << "source size z: " << size[2] <<std::endl;
 
   ImageType::RegionType region;
   region.SetSize( size );
@@ -341,6 +345,11 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   spacing[0] = sourceResX;
   spacing[1] = sourceResY;
   spacing[2] = sourceResZ;
+
+  LOGV(6) << "source res x: " << spacing[0] <<std::endl;
+  LOGV(6) << "source res y: " << spacing[1] <<std::endl;
+  LOGV(6) << "source res z: " << spacing[2] <<std::endl;
+
   atlasImage ->SetSpacing(spacing);
 
   double sourceOrigin[3];
@@ -357,7 +366,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     sourceIterator.Set(sourcePixels[offset++]);
   }
 
-
+  LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
   //write image as a test
   //typedef  itk::ImageFileWriter< ImageType > WriterType;
   //WriterType::Pointer atlasWriter = WriterType::New();
