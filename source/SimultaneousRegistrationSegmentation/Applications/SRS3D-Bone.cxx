@@ -357,25 +357,14 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     sourceOrigin[d] = -0.5*spacing[d] * size[d];
   }
   atlasImage->SetOrigin(sourceOrigin);
-
-
   LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
+
+
   itk::ImageRegionIteratorWithIndex<ImageType> sourceIterator(atlasImage,atlasImage->GetLargestPossibleRegion());
   offset = 0;
   for (sourceIterator.GoToBegin();!sourceIterator.IsAtEnd();++sourceIterator){
     sourceIterator.Set(sourcePixels[offset++]);
   }
-  LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
-  LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
-  //write image as a test
-  //typedef  itk::ImageFileWriter< ImageType > WriterType;
-  //WriterType::Pointer atlasWriter = WriterType::New();
-  //std::string seriesFormatAtlas("C:\\Users\\jstrasse\\Desktop");
-  //seriesFormatAtlas = seriesFormatAtlas + "\\" + "atlas.nii.gz";
-  //atlasWriter->SetFileName(seriesFormatAtlas);
-  //atlasWriter->SetInput(atlasImage);
-  //atlasWriter->Update();
-  LOG << "Creating initial affine" << std::endl;
   typedef itk::AffineTransform<double,3> AffineTransformType;
   AffineTransformType::Pointer affine = AffineTransformType::New();
   AffineTransformType::MatrixType matrix;
