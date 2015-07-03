@@ -359,7 +359,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   atlasImage->SetOrigin(sourceOrigin);
 
 
-
+  LOGV(6) << "source origin: " << sourceOrigin[0] << " " << sourceOrigin[1] << " " << sourceOrigin[2] <<std::endl;
   itk::ImageRegionIteratorWithIndex<ImageType> sourceIterator(atlasImage,atlasImage->GetLargestPossibleRegion());
   offset = 0;
   for (sourceIterator.GoToBegin();!sourceIterator.IsAtEnd();++sourceIterator){
