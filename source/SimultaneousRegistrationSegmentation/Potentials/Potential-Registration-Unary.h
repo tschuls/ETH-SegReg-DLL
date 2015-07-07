@@ -527,7 +527,7 @@ namespace SRS{
           m_coarseImage->TransformIndexToPhysicalPoint(coarseIndex, point);
           typename PointsLocatorType::NeighborsIdentifierType neighborhood;
           pointsLocator->Search(point, radius, neighborhood);
-          LOGV(1) << VAR(point) << " " << neighborhood.size() << endl;
+          LOGV(5) << VAR(point) << " " << neighborhood.size() << endl;
 
           //compute similarity
           for (int n = 0; n < neighborhood.size(); ++n){
