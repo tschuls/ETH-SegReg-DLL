@@ -412,8 +412,8 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
 
   if (filterConfig->verbose>5) {
       ImagePointerType deformedAtlasAffine = TransfUtils<ImageType>::affineDeformImage(atlasImage, affine, targetImage);
-	    ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasDeformedRigid.nii", deformedAtlasAffine);
-	    ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasUnDeformedRigid.nii", atlasImage);
+      ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasDeformedRigid.nii", deformedAtlasAffine);
+      ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasUnDeformedRigid.nii", atlasImage);
   }
 
   if (!atlasImage) {
@@ -645,9 +645,9 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
     }  
   }
 
-	*fieldResX = targetResX;
-	*fieldResY = targetResY;
-	*fieldResZ = targetResZ;
+  *fieldResX = targetResX;
+  *fieldResY = targetResY;
+  *fieldResZ = targetResZ;
   LOG << "fieldResX " << *fieldResX << std::endl;
   LOG << "fieldResY " << *fieldResY << std::endl;
   LOG << "fieldResZ " << *fieldResZ << std::endl;
