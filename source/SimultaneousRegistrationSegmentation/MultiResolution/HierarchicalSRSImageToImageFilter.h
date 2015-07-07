@@ -135,6 +135,13 @@ namespace SRS{
         typedef typename  SegmentationInterpolatorType::Pointer SegmentationInterpolatorPointerType;
 
         //typedef ITKGraphModel<UnaryPotentialType,LabelMapperType,ImageType> GraphModelType;
+
+        //typdefs for landmark debugging
+        typedef  typename itk::PointSet< PixelType, D >   PointSetType;
+        typedef typename  PointSetType::PointsContainer PointsContainerType;
+        typedef typename  PointSetType::PointsContainerPointer PointsContainerPointer;
+        typedef typename  PointSetType::PointsContainerIterator PointsContainerIterator;
+        typedef typename PointsContainerType::Pointer  PointsContainerPointerType;
     
     private:
         SRSConfig::Pointer m_config;
@@ -155,6 +162,8 @@ namespace SRS{
         PairwiseCoherencePotentialPointerType m_pairwiseCoherencePot;
         double lastEnergy;
         std::vector<double> m_originalTargetExtent;
+        std::vector<double> m_landmarkDistances[5];
+        std::string m_landmarkFilename;
     public:
         HierarchicalSRSImageToImageFilter(){
             this->SetNumberOfRequiredInputs(5);
@@ -215,6 +224,8 @@ namespace SRS{
             return m_finalSegmentation;
         }
 
+        void setLandmarkFilename(std::string filename){m_landmarkFilename=filename;}
+
         void setUnaryRegistrationPotentialFunction(UnaryRegistrationPotentialPointerType func){m_unaryRegistrationPot=func;}
         void setUnarySegmentationPotentialFunction(UnarySegmentationPotentialPointerType func){m_unarySegmentationPot=func;}
         void setPairwiseRegistrationPotentialFunction(PairwiseRegistrationPotentialPointerType func){m_pairwiseRegistrationPot=func;}
@@ -263,13 +274,31 @@ namespace SRS{
                 //MOVED HERE, HOPE THIS DOES NOT BREAK ANYTHING
                 m_unaryRegistrationPot->SetTargetImage(m_targetImage);
                 m_unaryRegistrationPot->SetAtlasImage(m_atlasImage);
+
                 // /MOVED
                 m_pairwiseRegistrationPot->setThreshold(m_config->thresh_PairwiseReg);
                 m_pairwiseRegistrationPot->setFullRegularization(m_config->fullRegPairwise);
-                
+
+
                 LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_targetImageAfterSettingLandmarks.nii",m_targetImage));
                 LOGI(6, ImageUtils<ImageType>::writeImage("C:\\Users\\jstrasse\\Desktop\\a_atlasImageAfterSettingLandmarks.nii",m_atlasImage)); 
             }
+
+            if (m_config->debugLandmarks) {
+                PointsContainerType::Pointer targetLandmarks = m_unaryRegistrationPot->GetOriginalTargetLandmarks();
+                PointsContainerType::Iterator it = targetLandmarks->Begin();
+                PointsContainerType::Iterator atlasIt = m_unaryRegistrationPot->GetOriginalAtlasLandmarks()->Begin();
+                int i=0;
+                while (it != targetLandmarks->End()) {
+                  double localError = (it->Value() - atlasIt->Value()).GetNorm();
+                  m_landmarkDistances[i].push_back(localError);
+                  //LOG << "point " << i << " with error: " << localError << std::endl;
+                  ++i;
+                  it++;
+                  atlasIt++;
+                }
+            }
+
             if (segment){
 
               
@@ -777,15 +806,28 @@ namespace SRS{
                         segmentation = FilterUtils<ImageType>::BSplineResampleSegmentation(segmentation,m_targetImage);
                     }
 
-                    if (m_config->verbose>6){
+
+                    if (m_config->debugLandmarks) {
                         //check distance of landmarks
-                        typedef  typename itk::PointSet< PixelType, D >   PointSetType;
-                        typedef typename  PointSetType::PointsContainer PointsContainerType;
-                        typedef typename  PointSetType::PointsContainerPointer PointsContainerPointer;
-                        typedef typename  PointSetType::PointsContainerIterator PointsContainerIterator;
                         PointsContainerPointer intermediateLandmarks = LandmarkUtils<ImageType,PointsContainerType>::transform(m_unaryRegistrationPot->GetOriginalTargetLandmarks(), composedDeformation);
                     
-                        LandmarkUtils<ImageType,PointsContainerType>::logTRE(intermediateLandmarks, m_unaryRegistrationPot->GetOriginalAtlasLandmarks());
+                        //LandmarkUtils<ImageType,PointsContainerType>::logTRE(intermediateLandmarks, m_unaryRegistrationPot->GetOriginalAtlasLandmarks());
+                        PointsContainerType::Iterator it = intermediateLandmarks->Begin();
+                        PointsContainerType::Iterator atlasIt = m_unaryRegistrationPot->GetOriginalAtlasLandmarks()->Begin();
+                        int i=0;
+                        while (it != intermediateLandmarks->End()) {
+                          double localError = (it->Value() - atlasIt->Value()).GetNorm();
+                          m_landmarkDistances[i].push_back(localError);
+                          //LOG << "point " << i << " with error: " << localError << std::endl;
+                          ++i;
+                          it++;
+                          atlasIt++;
+                        }
+                    }
+
+
+
+                    if (m_config->verbose>1){
 
                         DeformationFieldPointerType lowResDef;
                         if (!pixelGrid){
@@ -851,6 +893,22 @@ namespace SRS{
 
 	          m_finalDeformation=previousFullDeformation;
             delete labelmapper;
+
+            if (m_config->debugLandmarks) {
+              ofstream out(m_landmarkFilename);
+              int sizeX = 5;
+              int sizeY = m_landmarkDistances[2].size();
+              for(int i = 0; i < sizeX; i++)
+              {
+                  for(int j = 0; j < sizeY; j++)
+                  {
+                    out << m_landmarkDistances[i][j] << " ";
+                  }
+                  out << '\n';
+              }
+              out.close();
+            }
+
         }//run
       
        

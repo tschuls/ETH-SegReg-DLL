@@ -116,6 +116,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   std::string atlasName = atlasDir.substr(atlasDir.length()-9,9); 
   std::string tagetName = targetDir.substr(targetDir.length()-9,9); 
   std::string protocolFile = protocolDir + "\\SRS_" + atlasName + "_" + tagetName + ".txt";
+  std::string landmarkFile = protocolDir + "\\landmarkDist_" + atlasName + "_" + tagetName + ".txt";
   std::ofstream out(protocolFile);
   std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
   std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
@@ -201,6 +202,7 @@ EXTERN_C __declspec(dllexport) wchar_t* __cdecl DoRegistration(
   filter->setPairwiseCoherencePotentialFunction((pairwiseCoherencePot));
   filter->setPairwiseSegmentationPotentialFunction((pairwiseSegmentationPot));
 
+  filter->setLandmarkFilename(landmarkFile);
 
   logUpdateStage("IO");
   logSetVerbosity(filterConfig->verbose);

@@ -82,6 +82,7 @@ namespace SRS{
 		int nSegmentationLevels;
 		std::string solver;
 		std::string regSampleString;
+    bool debugLandmarks;
 		typedef SRSConfig             Self;
 		typedef itk::Object Superclass;
 		typedef itk::SmartPointer< Self >        Pointer;
@@ -169,6 +170,7 @@ namespace SRS{
 			histNorm = false;
 			nSegmentationLevels = 1;
 			solver = "GCO";
+      debugLandmarks = false;
 		}
 		~SRSConfig(){
 			delete as;
@@ -297,7 +299,7 @@ namespace SRS{
 			as->option("cachePotentials", cachePotentials, "Cache all potential function values before calling the optimizer. requires more memory, but will speed up things!.", optionalParameter);
 			as->option("normalizeImages", normalizeImages, "Normalize images to zero mean and unit variance. NO CHECK IF PIXELTYPE IS INTEGER!", optionalParameter);
 			as->option("useLowResBSpline", useLowResBSpline, "Only upsample deformation field to the resolution used in registration unary computation. Speeds up the process a bit, looses some accuracy. DOES NOT WORK/HAVE ANY EFFECT WHEN SRS IS USED!", optionalParameter);
-
+      as->option("debugLandmarks", debugLandmarks, "Write out debug informations of landmarks", false);
 			as->parameter("auxLabel", auxiliaryLabel, "label of auxiliary anatomy in atlas segmentation. less adherence is enforced in SRS to this label in comparison to other foreground labels. When unset (default), is assumed to be 1 in case their are more than 2 labels in total.", false);
 
 
